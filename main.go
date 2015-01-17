@@ -35,7 +35,7 @@ func main() {
 		panic(err)
 	}
 
-	// defer session.Close()
+	defer session.Close()
 
 	r := mux.NewRouter()
 	api := r.PathPrefix("/api").Subrouter()
@@ -86,12 +86,7 @@ func newUserHandler(w http.ResponseWriter, r *http.Request) {
 	c := session.DB(db).C("users")
 	var u User
 
-	if err := c.Find(bson.M{"username": username}).One(&u); err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	if u != (User{}) {
+	if c.Find(bson.M{"username": username}).One(&u); u != (User{}) {
 		fmt.Fprint(w, "That user already exists!")
 		return
 	}
@@ -123,13 +118,9 @@ func loginUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	var u User
 
-	if err := c.Find(bson.M{"username": username, "password_hash": password}).One(&u); err != nil {
-		panic(err)
-		return
-	}
-
-	if u == (User{}) {
+	if c.Find(bson.M{"username": username, "password_hash": password}).One(&u); u == (User{}) {
 		fmt.Fprintln(w, "That user doesnt exist")
+		return
 	}
 
 	fmt.Fprintf(w, "yes you are %v", u.Username)
