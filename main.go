@@ -1,12 +1,15 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	// "github.com/freehaha/token-auth"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 type User struct {
@@ -18,14 +21,52 @@ type User struct {
 }
 
 type Review struct {
-	From bson.ObjectId `bson:"_id"`
+	Id      bson.ObjectId `bson:"_id"`
+	From    bson.ObjectId `bson:"from"`
+	Content string        `bson:"content"`
+	Rating  int           `bson:"rating"`
+}
+
+type Token struct {
+	Name  string
+	Value string
 }
 
 var (
-	session *mgo.Session
-
-	db = "repo-reviews"
+	session            *mgo.Session
+	verifyKey, signKey []byte
+	signingMethod      jwt.SigningMethod
 )
+
+const (
+	db             = "repo-reviews"
+	privateKeyPath = "app.rsa"
+	publicKeyPath  = "app.rsa.pub"
+)
+
+func init() {
+	var err error
+
+	signKey, err = ioutil.ReadFile(privateKeyPath)
+
+	if err != nil {
+		fmt.Println("Could not find your private key!")
+		panic(err)
+	}
+
+	verifyKey, err = ioutil.ReadFile(publicKeyPath)
+
+	if err != nil {
+		fmt.Println("Could not find your public key!")
+		panic(err)
+	}
+
+	signingMethod = jwt.GetSigningMethod("RS256")
+}
+
+func NewAccessToken(value string) Token {
+	return Token{"AccessToken", value}
+}
 
 func main() {
 	var err error
@@ -67,6 +108,10 @@ func main() {
 	// GET /api/repo/{repository}
 	// Get information and all the reviews on a repo
 	api.HandleFunc("/repo/{repository}", getRepository).Methods("GET")
+
+	// GET /secret
+	// A page to test secrecy!
+	r.HandleFunc("/secret", restrict(getSecret)).Methods("GET")
 	http.Handle("/", r)
 
 	fmt.Println("Loading http server on :8080...")
@@ -75,35 +120,26 @@ func main() {
 
 }
 
+func getSecret(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "NCSS IS ILLUMINATTI")
+}
+
 func newUserHandler(w http.ResponseWriter, r *http.Request) {
-	username, password := r.FormValue("username"), r.FormValue("password")
-
-	if username == "" || password == "" {
-		fmt.Fprintln(w, "Username or password is not valid")
-		return
-	}
-
-	c := session.DB(db).C("users")
-	var u User
-
-	if c.Find(bson.M{"username": username}).One(&u); u != (User{}) {
-		fmt.Fprint(w, "That user already exists!")
-		return
-	}
-
-	u = User{Id: bson.NewObjectId(), Username: username, PasswordHash: password}
-
-	if err := c.Insert(u); err != nil {
-		panic(err)
-		return
-	}
-
-	fmt.Fprintf(w, "%v", u)
 
 }
 
 func getUserHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
 
+	c := session.DB(db).C("users")
+	var u User
+
+	if c.Find(bson.M{"username": vars["username"]}).One(&u); u == (User{}) {
+		fmt.Fprintln(w, "that user doesnt exist")
+		return
+	}
+
+	fmt.Fprintln(w, "We found that user!", u)
 }
 
 func loginUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -123,7 +159,20 @@ func loginUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "yes you are %v", u.Username)
+	t := jwt.New(signingMethod)
+
+	t.Claims["AccessToken"] = "1"
+	t.Claims["User"] = u.Id
+	t.Claims["Expires"] = time.Now().Add(time.Minute * 15).Unix()
+
+	tokenString, err := t.SignedString(signKey)
+
+	if err != nil {
+		fmt.Fprintln(w, "Error signing that token")
+		return
+	}
+
+	json.NewEncoder(w).Encode(NewAccessToken(tokenString))
 
 }
 
@@ -141,4 +190,29 @@ func getReviewHandler(w http.ResponseWriter, r *http.Request) {
 
 func getRepository(w http.ResponseWriter, r *http.Request) {
 
+}
+
+func restrict(fn http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tokenString := r.FormValue("access_token")
+		fmt.Println(tokenString)
+
+		token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+			return verifyKey, nil
+		})
+
+		if err != nil {
+			fmt.Fprintln(w, "That is not a valid token")
+			fmt.Println(err)
+			return
+		}
+
+		if !token.Valid {
+			fmt.Fprintln(w, "Something obscurely strange happened to uyour token")
+		}
+
+		fmt.Println("WE GAVE A TOKEN ACCESS TO SOMETHING!")
+		fn(w, r)
+
+	}
 }
