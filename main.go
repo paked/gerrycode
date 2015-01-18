@@ -125,7 +125,29 @@ func getSecret(w http.ResponseWriter, r *http.Request) {
 }
 
 func newUserHandler(w http.ResponseWriter, r *http.Request) {
+	username, password := r.FormValue("username"), r.FormValue("password")
 
+	if username == "" || password == "" {
+		fmt.Fprintln(w, "Username or password is not valid")
+		return
+	}
+
+	c := session.DB(db).C("users")
+	var u User
+
+	if c.Find(bson.M{"username": username}).One(&u); u != (User{}) {
+		fmt.Fprint(w, "That user already exists!")
+		return
+	}
+
+	u = User{Id: bson.NewObjectId(), Username: username, PasswordHash: password}
+
+	if err := c.Insert(u); err != nil {
+		panic(err)
+		return
+	}
+
+	fmt.Fprintf(w, "%v", u)
 }
 
 func getUserHandler(w http.ResponseWriter, r *http.Request) {
