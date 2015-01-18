@@ -21,10 +21,11 @@ type User struct {
 }
 
 type Review struct {
-	Id      bson.ObjectId `bson:"_id" json:"_id"`
-	From    bson.ObjectId `bson:"from" json:"from"`
-	Content string        `bson:"content" json:"content"`
-	Rating  int           `bson:"rating" json:"rating"`
+	Id         bson.ObjectId `bson:"_id" json:"_id"`
+	From       bson.ObjectId `bson:"from" json:"from"`
+	Repository bson.ObjectId `bson:"repository" json:"repository"`
+	Content    string        `bson:"content" json:"content"`
+	Rating     int           `bson:"rating" json:"rating"`
 }
 
 type Repository struct {
@@ -104,7 +105,7 @@ func main() {
 
 	// POST /api/repo/{repository}/review?text=This+sucks&rating=2&access_token=xxx
 	// Submit a new review
-	api.HandleFunc("/repo/{repository}/review", newReviewHandler).Methods("POST")
+	api.HandleFunc("/repo/{repository}/review", restrict(newReviewHandler)).Methods("POST")
 
 	// GET /repo/{repository}/{review}
 	// Return a review from a repository
@@ -255,8 +256,40 @@ func newRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	json.NewEncoder(w).Encode(re)
 }
 
-func newReviewHandler(w http.ResponseWriter, r *http.Request) {
+func newReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
+	vars := mux.Vars(r)
+	repository, review := vars["repository"], r.FormValue("review")
 
+	if review == "" {
+		fmt.Fprintln(w, "Please let your review have some content?")
+		return
+	}
+
+	c := session.DB(db).C("repositories")
+	var rep Repository
+
+	if c.Find(bson.M{"_id": bson.ObjectIdHex(repository)}).One(&rep); rep == (Repository{}) {
+		fmt.Fprintln(w, "a repo with that id doesnt exist...")
+		return
+	}
+
+	c = session.DB(db).C("users")
+	var u User
+
+	if c.Find(bson.M{"_id": bson.ObjectIdHex(t.Claims["User"].(string))}).One(&u); u == (User{}) {
+		fmt.Fprintln(w, "a user with that id doesnt exist...")
+		return
+	}
+
+	c = session.DB(db).C("reviews")
+	rev := Review{Id: bson.NewObjectId(), Content: review, From: u.Id, Repository: rep.Id}
+
+	if err := c.Insert(rev); err != nil {
+		fmt.Fprintln(w, "something went wrong while inserting the new review!")
+		return
+	}
+
+	json.NewEncoder(w).Encode(rev)
 }
 
 func getReviewHandler(w http.ResponseWriter, r *http.Request) {
