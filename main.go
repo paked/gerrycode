@@ -27,6 +27,11 @@ type Review struct {
 	Rating  int           `bson:"rating"`
 }
 
+type Repository struct {
+	Id  bson.ObjectId `bson:"_id",json:"_id"`
+	URL string        `bson:"url",json:"url"`
+}
+
 type Token struct {
 	Name  string
 	Value string
@@ -97,7 +102,7 @@ func main() {
 	// Return the specified user (if they exist)
 	api.HandleFunc("/user/{username}", getUserHandler).Methods("GET")
 
-	// POST /api/repo/{repository}/review?text=This+sucks&rating=2&api_token=xxx
+	// POST /api/repo/{repository}/review?text=This+sucks&rating=2&access_token=xxx
 	// Submit a new review
 	api.HandleFunc("/repo/{repository}/review", newReviewHandler).Methods("POST")
 
@@ -108,6 +113,10 @@ func main() {
 	// GET /api/repo/{repository}
 	// Get information and all the reviews on a repo
 	api.HandleFunc("/repo/{repository}", getRepository).Methods("GET")
+
+	// POST /api/repo?url=github.com/paked/engi&access_token=xxx
+	// Create a new link to github repository, return to that!
+	api.HandleFunc("/repo", restrict(newRepository)).Methods("POST")
 
 	// GET /secret
 	// A page to test secrecy!
@@ -218,6 +227,32 @@ func getCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token)
 	json.NewEncoder(w).Encode(u)
 }
 
+func newRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
+	repository := r.FormValue("repository")
+
+	if repository == "" {
+		fmt.Fprintln(w, "Please specify a repo :)")
+		return
+	}
+
+	c := session.DB(db).C("repositories")
+	var re Repository
+
+	if c.Find(bson.M{"url": repository}).One(&re); re != (Repository{}) {
+		fmt.Fprintln(w, "That repo already exist")
+		return
+	}
+
+	re = Repository{bson.NewObjectId(), repository}
+
+	if err := c.Insert(r); err != nil {
+		panic(err)
+		return
+	}
+
+	json.NewEncoder(w).Encode(re)
+}
+
 func newReviewHandler(w http.ResponseWriter, r *http.Request) {
 
 }
@@ -227,7 +262,22 @@ func getReviewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getRepository(w http.ResponseWriter, r *http.Request) {
+	repository := r.FormValue("repository")
 
+	if repository == "" {
+		fmt.Fprintln(w, "Please specify a repo :) xx")
+		return
+	}
+
+	c := session.DB(db).C("repositories")
+	var re Repository
+
+	if c.Find(bson.M{"_id": repository}).One(&re); re == (Repository{}) {
+		fmt.Fprintln(w, "that repo doesnt exist")
+		return
+	}
+
+	json.NewEncoder(w).Encode(re)
 }
 
 func restrict(fn func(http.ResponseWriter, *http.Request, *jwt.Token)) http.HandlerFunc {
