@@ -91,7 +91,7 @@ func main() {
 
 	// GET /api/user?api_token=xxx
 	// Return the current user
-	api.HandleFunc("/user", getCurrentUserHandler).Methods("GET")
+	api.HandleFunc("/user", restrict(getCurrentUserHandler)).Methods("GET")
 
 	// GET /api/user/{username}
 	// Return the specified user (if they exist)
@@ -112,6 +112,7 @@ func main() {
 	// GET /secret
 	// A page to test secrecy!
 	r.HandleFunc("/secret", restrict(getSecret)).Methods("GET")
+
 	http.Handle("/", r)
 
 	fmt.Println("Loading http server on :8080...")
@@ -120,7 +121,7 @@ func main() {
 
 }
 
-func getSecret(w http.ResponseWriter, r *http.Request) {
+func getSecret(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	fmt.Fprintln(w, "NCSS IS ILLUMINATTI")
 }
 
@@ -198,8 +199,23 @@ func loginUserHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func getCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
+func getCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
+	id, ok := t.Claims["User"].(string)
 
+	if !ok {
+		fmt.Fprintln(w, "Could not cast interface to bson.ObjectId!")
+		return
+	}
+
+	c := session.DB(db).C("users")
+	var u User
+
+	if c.Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&u); u == (User{}) {
+		fmt.Fprintln(w, "COuld not find that user!")
+		return
+	}
+
+	json.NewEncoder(w).Encode(u)
 }
 
 func newReviewHandler(w http.ResponseWriter, r *http.Request) {
@@ -214,10 +230,9 @@ func getRepository(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func restrict(fn http.HandlerFunc) http.HandlerFunc {
+func restrict(fn func(http.ResponseWriter, *http.Request, *jwt.Token)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenString := r.FormValue("access_token")
-		// fmt.Println(tokenString)
 
 		token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
 			return verifyKey, nil
@@ -233,6 +248,6 @@ func restrict(fn http.HandlerFunc) http.HandlerFunc {
 			fmt.Fprintln(w, "Something obscurely strange happened to your token")
 		}
 
-		fn(w, r)
+		fn(w, r, token)
 	}
 }
