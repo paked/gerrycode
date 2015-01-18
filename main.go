@@ -13,23 +13,23 @@ import (
 )
 
 type User struct {
-	Id           bson.ObjectId `bson:"_id"`
-	Username     string        `bson:"username",json:"username"`
-	PasswordHash string        `bson:"password_hash",json:"password_hash"`
+	Id           bson.ObjectId `bson:"_id" json:"_id"`
+	Username     string        `bson:"username" json:"username"`
+	PasswordHash string        `bson:"password_hash" json:"password_hash"`
 	PasswordSalt string
 	Email        string
 }
 
 type Review struct {
-	Id      bson.ObjectId `bson:"_id"`
-	From    bson.ObjectId `bson:"from"`
-	Content string        `bson:"content"`
-	Rating  int           `bson:"rating"`
+	Id      bson.ObjectId `bson:"_id" json:"_id"`
+	From    bson.ObjectId `bson:"from" json:"from"`
+	Content string        `bson:"content" json:"content"`
+	Rating  int           `bson:"rating" json:"rating"`
 }
 
 type Repository struct {
-	Id  bson.ObjectId `bson:"_id",json:"_id"`
-	URL string        `bson:"url",json:"url"`
+	Id  bson.ObjectId `bson:"_id" json:"_id"`
+	URL string        `bson:"url" json:"url"`
 }
 
 type Token struct {
