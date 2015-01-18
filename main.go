@@ -217,7 +217,7 @@ func getRepository(w http.ResponseWriter, r *http.Request) {
 func restrict(fn http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenString := r.FormValue("access_token")
-		fmt.Println(tokenString)
+		// fmt.Println(tokenString)
 
 		token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
 			return verifyKey, nil
@@ -230,11 +230,9 @@ func restrict(fn http.HandlerFunc) http.HandlerFunc {
 		}
 
 		if !token.Valid {
-			fmt.Fprintln(w, "Something obscurely strange happened to uyour token")
+			fmt.Fprintln(w, "Something obscurely strange happened to your token")
 		}
 
-		fmt.Println("WE GAVE A TOKEN ACCESS TO SOMETHING!")
 		fn(w, r)
-
 	}
 }
