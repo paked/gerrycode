@@ -230,6 +230,8 @@ func getCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token)
 func newRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	repository := r.FormValue("repository")
 
+	fmt.Println(repository)
+
 	if repository == "" {
 		fmt.Fprintln(w, "Please specify a repo :)")
 		return
@@ -245,7 +247,7 @@ func newRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 
 	re = Repository{bson.NewObjectId(), repository}
 
-	if err := c.Insert(r); err != nil {
+	if err := c.Insert(re); err != nil {
 		panic(err)
 		return
 	}
@@ -262,17 +264,13 @@ func getReviewHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getRepository(w http.ResponseWriter, r *http.Request) {
-	repository := r.FormValue("repository")
-
-	if repository == "" {
-		fmt.Fprintln(w, "Please specify a repo :) xx")
-		return
-	}
+	vars := mux.Vars(r)
+	repository := vars["repository"]
 
 	c := session.DB(db).C("repositories")
 	var re Repository
 
-	if c.Find(bson.M{"_id": repository}).One(&re); re == (Repository{}) {
+	if c.Find(bson.M{"_id": bson.ObjectIdHex(repository)}).One(&re); re == (Repository{}) {
 		fmt.Fprintln(w, "that repo doesnt exist")
 		return
 	}
