@@ -11,6 +11,36 @@ class HomeView extends Backbone.View {
 
 }
 
+class LoginView extends Backbone.View {
+	initialize() {
+		this.template = $('script[name="login"]').html();
+		this.events = {
+			"click #login_button": "login"
+		}	
+	}
+
+	login () {
+		console.log("HEY HEY EY")
+		$.ajax({
+			url: "/api/user/login",
+			type: "POST",
+			data: {
+				username: $("#username_field").val(),
+				password: $("#password_field").val()
+			},
+			success: function(data) {
+				console.log(data, "HIlo")
+			}
+		})
+	}
+
+	render () {
+	    this.$el.html(_.template(this.template));
+	    return this;
+  	}
+
+}
+
 class RepositoriesView extends Backbone.View {
 
   initialize () {
@@ -24,4 +54,4 @@ class RepositoriesView extends Backbone.View {
 
 }
 
-export { HomeView, RepositoriesView };
+export { HomeView, RepositoriesView, LoginView};

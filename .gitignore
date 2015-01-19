@@ -24,4 +24,4 @@ _testmain.go
 *.prof
 
 # #justbowerthings
-public/lib/*
+static/lib/*
