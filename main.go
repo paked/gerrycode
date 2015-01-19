@@ -29,8 +29,10 @@ type Review struct {
 }
 
 type Repository struct {
-	Id  bson.ObjectId `bson:"_id" json:"_id"`
-	URL string        `bson:"url" json:"url"`
+	Id   bson.ObjectId `bson:"_id" json:"_id"`
+	Host string        `bson:"host" json:"host"`
+	User string        `bson:"user" json:"user"`
+	Name string        `bson:"name" json:"name"`
 }
 
 type Token struct {
@@ -105,19 +107,19 @@ func main() {
 
 	// POST /api/repo/{repository}/review?text=This+sucks&rating=2&access_token=xxx
 	// Submit a new review
-	api.HandleFunc("/repo/{repository}/review", restrict(newReviewHandler)).Methods("POST")
+	api.HandleFunc("/repo/{host}/{user}/{name}/review", restrict(newReviewHandler)).Methods("POST")
 
 	// GET /repo/{repository}/{review}
 	// Return a review from a repository
-	api.HandleFunc("/repo/{repository}/{review}", getReviewHandler).Methods("GET")
+	api.HandleFunc("/repo/{host}/{user}/{name}/{review}", getReviewHandler).Methods("GET")
 
 	// GET /api/repo/{repository}
 	// Get information and all the reviews on a repo
-	api.HandleFunc("/repo/{repository}", getRepository).Methods("GET")
+	api.HandleFunc("/repo/{host}/{user}/{name}", getRepository).Methods("GET")
 
 	// POST /api/repo?url=github.com/paked/engi&access_token=xxx
 	// Create a new link to github repository, return to that!
-	api.HandleFunc("/repo", restrict(newRepository)).Methods("POST")
+	api.HandleFunc("/repo/{host}/{user}/{name}", restrict(newRepository)).Methods("POST")
 
 	// GET /secret
 	// A page to test secrecy!
@@ -229,24 +231,18 @@ func getCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token)
 }
 
 func newRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
-	repository := r.FormValue("repository")
-
-	fmt.Println(repository)
-
-	if repository == "" {
-		fmt.Fprintln(w, "Please specify a repo :)")
-		return
-	}
+	vars := mux.Vars(r)
+	host, user, name := vars["host"], vars["user"], vars["name"]
 
 	c := session.DB(db).C("repositories")
 	var re Repository
 
-	if c.Find(bson.M{"url": repository}).One(&re); re != (Repository{}) {
+	if c.Find(bson.M{"host": host, "user": user, "name": name}).One(&re); re != (Repository{}) {
 		fmt.Fprintln(w, "That repo already exist")
 		return
 	}
 
-	re = Repository{bson.NewObjectId(), repository}
+	re = Repository{Id: bson.NewObjectId(), Host: host, User: user, Name: name}
 
 	if err := c.Insert(re); err != nil {
 		panic(err)
@@ -258,7 +254,7 @@ func newRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 
 func newReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	vars := mux.Vars(r)
-	repository, review := vars["repository"], r.FormValue("review")
+	host, user, name, review := vars["host"], vars["user"], vars["name"], r.FormValue("review")
 
 	if review == "" {
 		fmt.Fprintln(w, "Please let your review have some content?")
@@ -268,8 +264,8 @@ func newReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	c := session.DB(db).C("repositories")
 	var rep Repository
 
-	if c.Find(bson.M{"_id": bson.ObjectIdHex(repository)}).One(&rep); rep == (Repository{}) {
-		fmt.Fprintln(w, "a repo with that id doesnt exist...")
+	if c.Find(bson.M{"host": host, "user": user, "name": name}).One(&rep); rep == (Repository{}) {
+		fmt.Fprintln(w, "a repo with that url doesnt exist...")
 		return
 	}
 
@@ -298,12 +294,12 @@ func getReviewHandler(w http.ResponseWriter, r *http.Request) {
 
 func getRepository(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	repository := vars["repository"]
+	host, user, name := vars["host"], vars["user"], vars["name"]
 
 	c := session.DB(db).C("repositories")
 	var re Repository
 
-	if c.Find(bson.M{"_id": bson.ObjectIdHex(repository)}).One(&re); re == (Repository{}) {
+	if c.Find(bson.M{"host": host, "user": user, "name": name}).One(&re); re == (Repository{}) {
 		fmt.Fprintln(w, "that repo doesnt exist")
 		return
 	}
