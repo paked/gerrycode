@@ -125,6 +125,9 @@ func main() {
 	// A page to test secrecy!
 	r.HandleFunc("/secret", restrict(getSecret)).Methods("GET")
 
+	// Serve all the static files!
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("static/")))
+
 	http.Handle("/", r)
 
 	fmt.Println("Loading http server on :8080...")
