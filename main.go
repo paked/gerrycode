@@ -36,8 +36,8 @@ type Repository struct {
 }
 
 type Token struct {
-	Name  string
-	Value string
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }
 
 var (
