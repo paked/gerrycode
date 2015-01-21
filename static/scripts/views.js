@@ -24,12 +24,14 @@ class LoginView extends Backbone.View {
 		$.ajax({
 			url: "/api/user/login",
 			type: "POST",
+			dataType:"json",
 			data: {
 				username: $("#username_field").val(),
 				password: $("#password_field").val()
 			},
 			success: function(data) {
 				console.log(data, "HIlo")
+				window.token = data.value
 			}
 		})
 	}

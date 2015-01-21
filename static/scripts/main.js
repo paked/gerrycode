@@ -10,3 +10,5 @@ class Application {
 $(() => {
   new Application();
 });
+
+window.token = ""

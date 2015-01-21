@@ -48,8 +48,8 @@ var (
 
 const (
 	db             = "repo-reviews"
-	privateKeyPath = "app.rsa"
-	publicKeyPath  = "app.rsa.pub"
+	privateKeyPath = "app.rsa"     // openssl genrsa -out app.rsa 1024
+	publicKeyPath  = "app.rsa.pub" // openssl rsa -in app.rsa -pubout > app.rsa.pub
 )
 
 func init() {
@@ -91,39 +91,39 @@ func main() {
 
 	// POST /api/user/create?username=paked&pasword=pw
 	// Create new user
-	api.HandleFunc("/user/create", newUserHandler).Methods("POST")
+	api.HandleFunc("/user/create", headers(newUserHandler)).Methods("POST")
 
 	// POST /api/user/login?username=paked&password=pw
 	// Authenticate and return token
-	api.HandleFunc("/user/login", loginUserHandler).Methods("POST")
+	api.HandleFunc("/user/login", headers(loginUserHandler)).Methods("POST")
 
 	// GET /api/user?api_token=xxx
 	// Return the current user
-	api.HandleFunc("/user", restrict(getCurrentUserHandler)).Methods("GET")
+	api.HandleFunc("/user", headers(restrict(getCurrentUserHandler))).Methods("GET")
 
 	// GET /api/user/{username}
 	// Return the specified user (if they exist)
-	api.HandleFunc("/user/{username}", getUserHandler).Methods("GET")
+	api.HandleFunc("/user/{username}", headers(getUserHandler)).Methods("GET")
 
 	// POST /api/repo/{repository}/review?text=This+sucks&rating=2&access_token=xxx
 	// Submit a new review
-	api.HandleFunc("/repo/{host}/{user}/{name}/review", restrict(newReviewHandler)).Methods("POST")
+	api.HandleFunc("/repo/{host}/{user}/{name}/review", headers(restrict(newReviewHandler))).Methods("POST")
 
 	// GET /repo/{repository}/{review}
 	// Return a review from a repository
-	api.HandleFunc("/repo/{host}/{user}/{name}/{review}", getReviewHandler).Methods("GET")
+	api.HandleFunc("/repo/{host}/{user}/{name}/{review}", headers(getReviewHandler)).Methods("GET")
 
 	// GET /api/repo/{repository}
 	// Get information and all the reviews on a repo
-	api.HandleFunc("/repo/{host}/{user}/{name}", getRepository).Methods("GET")
+	api.HandleFunc("/repo/{host}/{user}/{name}", headers(getRepository)).Methods("GET")
 
 	// POST /api/repo?url=github.com/paked/engi&access_token=xxx
 	// Create a new link to github repository, return to that!
-	api.HandleFunc("/repo/{host}/{user}/{name}", restrict(newRepository)).Methods("POST")
+	api.HandleFunc("/repo/{host}/{user}/{name}", headers(restrict(newRepository))).Methods("POST")
 
 	// GET /secret
 	// A page to test secrecy!
-	r.HandleFunc("/secret", restrict(getSecret)).Methods("GET")
+	r.HandleFunc("/secret", headers(restrict(getSecret))).Methods("GET")
 
 	// Serve all the static files!
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("static/")))
@@ -308,6 +308,12 @@ func getRepository(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(re)
+}
+
+func headers(fn http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+	}
 }
 
 func restrict(fn func(http.ResponseWriter, *http.Request, *jwt.Token)) http.HandlerFunc {
