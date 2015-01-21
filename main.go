@@ -210,8 +210,7 @@ func loginUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(NewAccessToken(tokenString))
-
+	json.NewEncoder(w).Encode(Token{Value: tokenString})
 }
 
 func getCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
@@ -313,6 +312,8 @@ func getRepository(w http.ResponseWriter, r *http.Request) {
 func headers(fn http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
+
+		fn(w, r)
 	}
 }
 

@@ -32,6 +32,11 @@ class LoginView extends Backbone.View {
 			success: function(data) {
 				console.log(data, "HIlo")
 				window.token = data.value
+
+				$(location).attr("href", "#/")
+			},
+			error: function(xhr, status, error) {
+				console.log("We had an error: ", xhr, status, error)
 			}
 		})
 	}
@@ -46,6 +51,11 @@ class LoginView extends Backbone.View {
 class RepositoriesView extends Backbone.View {
 
   initialize () {
+  	if (window.token == "" || window.token == undefined) {
+  		$(location).attr("href", "#")
+		return
+  	}
+
     this.template = $('script[name="repositories"]').html();
   }
 
