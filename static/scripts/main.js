@@ -12,3 +12,6 @@ $(() => {
 });
 
 window.token = ""
+
+console.log("loading rr")
+// console.log("loaded rr")

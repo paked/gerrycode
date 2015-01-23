@@ -17,7 +17,19 @@ header {
     margin-top: 15px;
 }
 
+header .container {
+    border-bottom: 1px grey solid;
+}
+
 header > div {
     /*background-color: #5245FF;*/
+    padding: 1vw;
+}
+
+.panel {
+    background-color: lightgrey;
+
+    border-radius: 5px;
+
     padding: 1vw;
 }
