@@ -10,6 +10,8 @@ class Repository extends Backbone.Model {
   }
 
   render() {
-  	if (host == "github.com")
+  	if (host == "github.com") {
+  		
+  	}
   }
 }
