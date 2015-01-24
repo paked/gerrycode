@@ -47,3 +47,15 @@ header > div {
     margin-bottom: 4vw;
     border-bottom: 1px grey solid;   
 }
+
+.break.light {
+    border-color:lightgrey;
+}
+
+.footer .time {
+    margin-right: 2vw;
+}
+
+.title {
+    margin-bottom: 2vw;
+}
