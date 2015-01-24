@@ -1,3 +1,7 @@
+body {
+    font-family: 'Helvetica'
+}
+
 nav ul li {
     display: inline;
     text-decoration: none;
@@ -9,6 +13,10 @@ nav ul li {
     text-decoration: none;
 }
 
+nav a {
+    color: darkgrey;
+}
+
 header a {
     text-decoration: none;
 }
@@ -16,10 +24,6 @@ header a {
 header {
     margin-top: 15px;
     margin-bottom: 4vw;
-}
-
-header .container {
-    border-bottom: 1px grey solid;
 }
 
 header > div {
@@ -33,4 +37,13 @@ header > div {
     border-radius: 5px;
 
     padding: 1vw;
+
+    list-style-type: none;
+}
+
+.break {
+    margin-top: 1vw;
+    padding-bottom: 1vw;
+    margin-bottom: 4vw;
+    border-bottom: 1px grey solid;   
 }
