@@ -15,6 +15,7 @@ header a {
 
 header {
     margin-top: 15px;
+    margin-bottom: 4vw;
 }
 
 header .container {
@@ -22,13 +23,13 @@ header .container {
 }
 
 header > div {
-    /*background-color: #5245FF;*/
     padding: 1vw;
 }
 
 .panel {
-    background-color: lightgrey;
+    background-color: #DBDBDB;
 
+    border: 1px solid #EDEDED;
     border-radius: 5px;
 
     padding: 1vw;
