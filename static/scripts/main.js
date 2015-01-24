@@ -1,17 +1,9 @@
-import Router from './router';
+'use strict';
 
-class Application {
-	constructor () {
-		new Router();
-		Backbone.history.start();
-	}
-}
+/*jshint esnext: true */
+/*global angular: false */
 
-$(() => {
-  new Application();
-});
+import MainCtrl from './mainCtrl';
 
-window.token = ""
-
-console.log("loading rr")
-// console.log("loaded rr")
+var app = angular.module('Rr', [])
+          .controller('MainCtrl', MainCtrl);
