@@ -1,0 +1,14 @@
+<div class="row">
+	<div class="six columns offset-by-three">
+		<h2>{{lc.loginMode}}!</h2>
+
+		<label for="username">Your username</label>
+		<input type="text" class="u-full-width" name="username" value="" placeholder="boberino" id="username"/>
+
+		<label for="email" ng-show="lc.loginMode == 'Register'">Your email</label>
+		<input type="email" class="u-full-width" name="email" placeholder="bob@erino.com" id="email" ng-show="lc.loginMode == 'Register'"/>
+
+		<label for="password">Your password</label>
+		<input type="password" class="u-full-width" name="" value="" placeholder="peperoni" id="password">
+	</div>
+</div>
