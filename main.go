@@ -12,6 +12,11 @@ import (
 	"time"
 )
 
+const (
+	UsernameAndPasswordRegex = `^[a-zA-Z]\w*[a-zA-Z]$`
+	EmailRegex               = `^.*\@.*$`
+)
+
 type User struct {
 	Id           bson.ObjectId `bson:"_id" json:"_id"`
 	Username     string        `bson:"username" json:"username"`

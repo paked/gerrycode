@@ -6,7 +6,7 @@ import (
 )
 
 func TestValidUsername(t *testing.T) {
-	r, err := regexp.Compile(`^[a-zA-Z]\w*[a-zA-Z]$`)
+	r, err := regexp.Compile(UsernameAndPasswordRegex)
 	if err != nil {
 		t.Fatal("Not valid regex.")
 	}
@@ -37,7 +37,7 @@ func TestValidUsername(t *testing.T) {
 }
 
 func TestValidEmail(t *testing.T) {
-	r, err := regexp.Compile(`^.*\@.*$`)
+	r, err := regexp.Compile(EmailRegex)
 
 	if err != nil {
 		t.Fatal("Not valid regex.")
