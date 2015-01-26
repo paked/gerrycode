@@ -129,15 +129,15 @@ func main() {
 	// Submit a new review
 	api.HandleFunc("/repo/{host}/{user}/{name}/review", headers(restrict(newReviewHandler))).Methods("POST")
 
-	// GET /repo/{repository}/{review}
+	// GET /repo/{host}/{user}/{name}/{review}
 	// Return a review from a repository
 	api.HandleFunc("/repo/{host}/{user}/{name}/{review}", headers(getReviewHandler)).Methods("GET")
 
-	// GET /api/repo/{repository}
+	// GET /api/repo/{host}/{user}/{name}
 	// Get information and all the reviews on a repo
 	api.HandleFunc("/repo/{host}/{user}/{name}", headers(getRepository)).Methods("GET")
 
-	// POST /api/repo?url=github.com/paked/engi&access_token=xxx
+	// POST /api/repo/{host}/{user}/{name}?access_token=xxx
 	// Create a new link to github repository, return to that!
 	api.HandleFunc("/repo/{host}/{user}/{name}", headers(restrict(newRepository))).Methods("POST")
 
@@ -145,7 +145,7 @@ func main() {
 	// A page to test secrecy!
 	r.HandleFunc("/secret", headers(restrict(getSecret))).Methods("GET")
 
-	// Serve all the static files!
+	// Serve ALL the static files!
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("static/")))
 
 	http.Handle("/", r)
