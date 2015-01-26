@@ -1,7 +1,7 @@
 class MainCtrl {
-   constructor() {
-  	this.message = "Hello Feddie";
-  }
+	constructor() {
+		this.message = "Hello Feddie";
+	}
 
 }
 
