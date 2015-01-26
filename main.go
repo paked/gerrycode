@@ -9,12 +9,26 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"time"
 )
 
 const (
-	UsernameAndPasswordRegex = `^[a-zA-Z]\w*[a-zA-Z]$`
-	EmailRegex               = `^.*\@.*$`
+	UsernameAndPasswordRegexString = `^[a-zA-Z]\w*[a-zA-Z]$`
+	EmailRegexString               = `^.*\@.*$`
+
+	db             = "repo-reviews"
+	privateKeyPath = "app.rsa"     // openssl genrsa -out app.rsa 1024
+	publicKeyPath  = "app.rsa.pub" // openssl rsa -in app.rsa -pubout > app.rsa.pub
+)
+
+var (
+	session            *mgo.Session
+	verifyKey, signKey []byte
+	signingMethod      jwt.SigningMethod
+
+	UsernameAndPasswordRegex *regexp.Regexp
+	EmailRegex               *regexp.Regexp
 )
 
 type User struct {
@@ -45,18 +59,6 @@ type Token struct {
 	Value string `json:"value"`
 }
 
-var (
-	session            *mgo.Session
-	verifyKey, signKey []byte
-	signingMethod      jwt.SigningMethod
-)
-
-const (
-	db             = "repo-reviews"
-	privateKeyPath = "app.rsa"     // openssl genrsa -out app.rsa 1024
-	publicKeyPath  = "app.rsa.pub" // openssl rsa -in app.rsa -pubout > app.rsa.pub
-)
-
 func init() {
 	var err error
 
@@ -75,6 +77,19 @@ func init() {
 	}
 
 	signingMethod = jwt.GetSigningMethod("RS256")
+
+	UsernameAndPasswordRegex, err = regexp.Compile(UsernameAndPasswordRegexString)
+
+	if err != nil {
+		panic(err)
+	}
+
+	EmailRegex, err = regexp.Compile(EmailRegexString)
+
+	if err != nil {
+		panic(err)
+	}
+
 }
 
 func NewAccessToken(value string) Token {
@@ -147,9 +162,10 @@ func getSecret(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 
 func newUserHandler(w http.ResponseWriter, r *http.Request) {
 	username, email, password := r.FormValue("username"), r.FormValue("email"), r.FormValue("password")
+	uRe, eRe, pRe := UsernameAndPasswordRegex.FindString(username), EmailRegex.FindString(email), UsernameAndPasswordRegex.FindString(username)
 
-	if username == "" || email == "" || password == "" {
-		fmt.Fprintln(w, "Username or password is not valid")
+	if uRe == "" || eRe == "" || pRe == "" {
+		fmt.Fprintln(w, "Username, password or email is not valid")
 		return
 	}
 
