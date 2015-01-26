@@ -16,8 +16,8 @@ type User struct {
 	Id           bson.ObjectId `bson:"_id" json:"_id"`
 	Username     string        `bson:"username" json:"username"`
 	PasswordHash string        `bson:"password_hash" json:"password_hash"`
+	Email        string        `bson:"email" json:"email"`
 	PasswordSalt string
-	Email        string
 }
 
 type Review struct {
@@ -141,9 +141,9 @@ func getSecret(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 }
 
 func newUserHandler(w http.ResponseWriter, r *http.Request) {
-	username, password := r.FormValue("username"), r.FormValue("password")
+	username, email, password := r.FormValue("username"), r.FormValue("email"), r.FormValue("password")
 
-	if username == "" || password == "" {
+	if username == "" || email == "" || password == "" {
 		fmt.Fprintln(w, "Username or password is not valid")
 		return
 	}
@@ -156,7 +156,7 @@ func newUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u = User{Id: bson.NewObjectId(), Username: username, PasswordHash: password}
+	u = User{Id: bson.NewObjectId(), Username: username, Email: email, PasswordHash: password}
 
 	if err := c.Insert(u); err != nil {
 		panic(err)
