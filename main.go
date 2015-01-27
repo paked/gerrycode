@@ -111,39 +111,39 @@ func main() {
 
 	// POST /api/user/create?username=paked&pasword=pw
 	// Create new user
-	api.HandleFunc("/user/create", headers(newUserHandler)).Methods("POST")
+	api.HandleFunc("/user/create", Headers(NewUserHandler)).Methods("POST")
 
 	// POST /api/user/login?username=paked&password=pw
 	// Authenticate and return token
-	api.HandleFunc("/user/login", headers(loginUserHandler)).Methods("POST")
+	api.HandleFunc("/user/login", Headers(LoginUserHandler)).Methods("POST")
 
 	// GET /api/user?api_token=xxx
 	// Return the current user
-	api.HandleFunc("/user", headers(restrict(getCurrentUserHandler))).Methods("GET")
+	api.HandleFunc("/user", Headers(Restrict(GetCurrentUserHandler))).Methods("GET")
 
 	// GET /api/user/{username}
 	// Return the specified user (if they exist)
-	api.HandleFunc("/user/{username}", headers(getUserHandler)).Methods("GET")
+	api.HandleFunc("/user/{username}", Headers(GetUserHandler)).Methods("GET")
 
 	// POST /api/repo/{repository}/review?text=This+sucks&rating=2&access_token=xxx
 	// Submit a new review
-	api.HandleFunc("/repo/{host}/{user}/{name}/review", headers(restrict(newReviewHandler))).Methods("POST")
+	api.HandleFunc("/repo/{host}/{user}/{name}/review", Headers(Restrict(NewReviewHandler))).Methods("POST")
 
 	// GET /repo/{host}/{user}/{name}/{review}
 	// Return a review from a repository
-	api.HandleFunc("/repo/{host}/{user}/{name}/{review}", headers(getReviewHandler)).Methods("GET")
+	api.HandleFunc("/repo/{host}/{user}/{name}/{review}", Headers(GetReviewHandler)).Methods("GET")
 
 	// GET /api/repo/{host}/{user}/{name}
 	// Get information and all the reviews on a repo
-	api.HandleFunc("/repo/{host}/{user}/{name}", headers(getRepository)).Methods("GET")
+	api.HandleFunc("/repo/{host}/{user}/{name}", Headers(GetRepository)).Methods("GET")
 
 	// POST /api/repo/{host}/{user}/{name}?access_token=xxx
 	// Create a new link to github repository, return to that!
-	api.HandleFunc("/repo/{host}/{user}/{name}", headers(restrict(newRepository))).Methods("POST")
+	api.HandleFunc("/repo/{host}/{user}/{name}", Headers(Restrict(NewRepository))).Methods("POST")
 
 	// GET /secret
 	// A page to test secrecy!
-	r.HandleFunc("/secret", headers(restrict(getSecret))).Methods("GET")
+	r.HandleFunc("/secret", Headers(Restrict(GetSecretHandler))).Methods("GET")
 
 	// Serve ALL the static files!
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("static/")))
@@ -152,15 +152,17 @@ func main() {
 
 	fmt.Println("Loading http server on :8080...")
 
-	http.ListenAndServe(":8080", nil)
+	fmt.Println(http.ListenAndServe(":8080", nil))
 
 }
 
-func getSecret(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
+// A test route to check if token authorization work.
+func GetSecretHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	fmt.Fprintln(w, "NCSS IS ILLUMINATTI")
 }
 
-func newUserHandler(w http.ResponseWriter, r *http.Request) {
+// Create a new user.
+func NewUserHandler(w http.ResponseWriter, r *http.Request) {
 	username, email, password := r.FormValue("username"), r.FormValue("email"), r.FormValue("password")
 	uRe, eRe, pRe := usernameAndPasswordRegex.FindString(username), emailRegex.FindString(email), usernameAndPasswordRegex.FindString(username)
 
@@ -187,7 +189,8 @@ func newUserHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%v", u)
 }
 
-func getUserHandler(w http.ResponseWriter, r *http.Request) {
+// Retrieve a User from the database
+func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	c := session.DB(db).C("users")
@@ -201,7 +204,8 @@ func getUserHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "We found that user!", u)
 }
 
-func loginUserHandler(w http.ResponseWriter, r *http.Request) {
+// Check the provided login credentials and if valid return an access_token.
+func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	username, password := r.FormValue("username"), r.FormValue("password")
 
 	if username == "" || password == "" {
@@ -234,7 +238,8 @@ func loginUserHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(Token{Value: tokenString})
 }
 
-func getCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
+// Retrieve the User currently logged in.
+func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	id, ok := t.Claims["User"].(string)
 
 	if !ok {
@@ -253,7 +258,8 @@ func getCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token)
 	json.NewEncoder(w).Encode(u)
 }
 
-func newRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
+// Create a new Repository link.
+func NewRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	vars := mux.Vars(r)
 	host, user, name := vars["host"], vars["user"], vars["name"]
 
@@ -275,7 +281,8 @@ func newRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	json.NewEncoder(w).Encode(re)
 }
 
-func newReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
+// Create a new Review on a Repository.
+func NewReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	vars := mux.Vars(r)
 	host, user, name, review := vars["host"], vars["user"], vars["name"], r.FormValue("review")
 
@@ -311,11 +318,13 @@ func newReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	json.NewEncoder(w).Encode(rev)
 }
 
-func getReviewHandler(w http.ResponseWriter, r *http.Request) {
+// Retrieve a Review.
+func GetReviewHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func getRepository(w http.ResponseWriter, r *http.Request) {
+// Retrieve a Repository.
+func GetRepository(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	host, user, name := vars["host"], vars["user"], vars["name"]
 
@@ -330,7 +339,8 @@ func getRepository(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(re)
 }
 
-func headers(fn http.HandlerFunc) http.HandlerFunc {
+// Add JSON headers onto a request.
+func Headers(fn http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
@@ -338,7 +348,8 @@ func headers(fn http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func restrict(fn func(http.ResponseWriter, *http.Request, *jwt.Token)) http.HandlerFunc {
+// Check if a provided access_token is valid, if it is continue the request.
+func Restrict(fn func(http.ResponseWriter, *http.Request, *jwt.Token)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenString := r.FormValue("access_token")
 
