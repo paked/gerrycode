@@ -109,40 +109,22 @@ func main() {
 	r := mux.NewRouter()
 	api := r.PathPrefix("/api").Subrouter()
 
-	// POST /api/user/create?username=paked&pasword=pw
-	// Create new user
 	api.HandleFunc("/user/create", Headers(NewUserHandler)).Methods("POST")
 
-	// POST /api/user/login?username=paked&password=pw
-	// Authenticate and return token
 	api.HandleFunc("/user/login", Headers(LoginUserHandler)).Methods("POST")
 
-	// GET /api/user?api_token=xxx
-	// Return the current user
 	api.HandleFunc("/user", Headers(Restrict(GetCurrentUserHandler))).Methods("GET")
 
-	// GET /api/user/{username}
-	// Return the specified user (if they exist)
 	api.HandleFunc("/user/{username}", Headers(GetUserHandler)).Methods("GET")
 
-	// POST /api/repo/{repository}/review?text=This+sucks&rating=2&access_token=xxx
-	// Submit a new review
 	api.HandleFunc("/repo/{host}/{user}/{name}/review", Headers(Restrict(NewReviewHandler))).Methods("POST")
 
-	// GET /repo/{host}/{user}/{name}/{review}
-	// Return a review from a repository
 	api.HandleFunc("/repo/{host}/{user}/{name}/{review}", Headers(GetReviewHandler)).Methods("GET")
 
-	// GET /api/repo/{host}/{user}/{name}
-	// Get information and all the reviews on a repo
 	api.HandleFunc("/repo/{host}/{user}/{name}", Headers(GetRepository)).Methods("GET")
 
-	// POST /api/repo/{host}/{user}/{name}?access_token=xxx
-	// Create a new link to github repository, return to that!
 	api.HandleFunc("/repo/{host}/{user}/{name}", Headers(Restrict(NewRepository))).Methods("POST")
 
-	// GET /secret
-	// A page to test secrecy!
 	r.HandleFunc("/secret", Headers(Restrict(GetSecretHandler))).Methods("GET")
 
 	// Serve ALL the static files!
@@ -157,11 +139,13 @@ func main() {
 }
 
 // GetSecretHandler is a test handler to check if access_tokens work.
+// 		GET /secret
 func GetSecretHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	fmt.Fprintln(w, "NCSS IS ILLUMINATTI")
 }
 
 // NewUserHandler creates a new user.
+// 		POST /api/user/create?username=paked&pasword=pw
 func NewUserHandler(w http.ResponseWriter, r *http.Request) {
 	username, email, password := r.FormValue("username"), r.FormValue("email"), r.FormValue("password")
 	uRe, eRe, pRe := usernameAndPasswordRegex.FindString(username), emailRegex.FindString(email), usernameAndPasswordRegex.FindString(username)
@@ -190,6 +174,7 @@ func NewUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetUserHandler retrieves a User from the database
+// 		GET /api/user/{username}
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -205,6 +190,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // LoginUserHandler checks the provided login credentials and if valid return an access_token.
+//		POST /api/user/login?username=paked&password=pw
 func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	username, password := r.FormValue("username"), r.FormValue("password")
 
@@ -239,6 +225,7 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetCurrentUserHandler retrieves the User currently logged in.
+// 		GET /api/user?api_token=xxx
 func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	id, ok := t.Claims["User"].(string)
 
@@ -259,6 +246,7 @@ func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token)
 }
 
 // NewRepository creates a new Repository link.
+// 		POST /api/repo/{host}/{user}/{name}?access_token=xxx
 func NewRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	vars := mux.Vars(r)
 	host, user, name := vars["host"], vars["user"], vars["name"]
@@ -282,6 +270,7 @@ func NewRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 }
 
 // NewReviewHandler creates a new Review on a Repository.
+// 		POST /api/repo/{repository}/review?text=This+sucks&rating=2&access_token=xxx
 func NewReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	vars := mux.Vars(r)
 	host, user, name, review := vars["host"], vars["user"], vars["name"], r.FormValue("review")
@@ -319,11 +308,13 @@ func NewReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 }
 
 // GetReviewHandler retrieves a Review.
+// 		GET /repo/{host}/{user}/{name}/{review}
 func GetReviewHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
 // GetRepository retrieves a Repository.
+// 		GET /api/repo/{host}/{user}/{name}
 func GetRepository(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	host, user, name := vars["host"], vars["user"], vars["name"]
