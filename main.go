@@ -14,12 +14,12 @@ import (
 )
 
 const (
-	UsernameAndPasswordRegexString = `^[a-zA-Z]\w*[a-zA-Z]$`
-	EmailRegexString               = `^.*\@.*$`
+	usernameAndPasswordRegexString = `^[a-zA-Z]\w*[a-zA-Z]$` // 1st and last characters must be letters.
+	emailRegexString               = `^.*\@.*$`              // As long as it has an '@' symbol in it I don't care.
 
-	db             = "repo-reviews"
-	privateKeyPath = "app.rsa"     // openssl genrsa -out app.rsa 1024
-	publicKeyPath  = "app.rsa.pub" // openssl rsa -in app.rsa -pubout > app.rsa.pub
+	db             = "repo-reviews" // Mongodb database name
+	privateKeyPath = "app.rsa"      // Command: openssl genrsa -out app.rsa 1024
+	publicKeyPath  = "app.rsa.pub"  // Command: openssl rsa -in app.rsa -pubout > app.rsa.pub
 )
 
 var (
@@ -27,33 +27,37 @@ var (
 	verifyKey, signKey []byte
 	signingMethod      jwt.SigningMethod
 
-	UsernameAndPasswordRegex *regexp.Regexp
-	EmailRegex               *regexp.Regexp
+	usernameAndPasswordRegex *regexp.Regexp // Compiled regex for quicker matching.
+	emailRegex               *regexp.Regexp // Compiled regex for quicker matching.
 )
 
+// User is someone who has registered on the site.
 type User struct {
-	Id           bson.ObjectId `bson:"_id" json:"_id"`
+	ID           bson.ObjectId `bson:"_id" json:"_id"`
 	Username     string        `bson:"username" json:"username"`
 	PasswordHash string        `bson:"password_hash" json:"password_hash"`
 	Email        string        `bson:"email" json:"email"`
 	PasswordSalt string
 }
 
+// Review's are created by Users to express their feelins on a particular Repository
 type Review struct {
-	Id         bson.ObjectId `bson:"_id" json:"_id"`
+	ID         bson.ObjectId `bson:"_id" json:"_id"`
 	From       bson.ObjectId `bson:"from" json:"from"`
 	Repository bson.ObjectId `bson:"repository" json:"repository"`
 	Content    string        `bson:"content" json:"content"`
 	Rating     int           `bson:"rating" json:"rating"`
 }
 
+// A link to a externally hosted Repository
 type Repository struct {
-	Id   bson.ObjectId `bson:"_id" json:"_id"`
+	ID   bson.ObjectId `bson:"_id" json:"_id"`
 	Host string        `bson:"host" json:"host"`
 	User string        `bson:"user" json:"user"`
 	Name string        `bson:"name" json:"name"`
 }
 
+// Tokens are what is used to tell a client there access_token
 type Token struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
@@ -78,22 +82,18 @@ func init() {
 
 	signingMethod = jwt.GetSigningMethod("RS256")
 
-	UsernameAndPasswordRegex, err = regexp.Compile(UsernameAndPasswordRegexString)
+	usernameAndPasswordRegex, err = regexp.Compile(usernameAndPasswordRegexString)
 
 	if err != nil {
 		panic(err)
 	}
 
-	EmailRegex, err = regexp.Compile(EmailRegexString)
+	emailRegex, err = regexp.Compile(emailRegexString)
 
 	if err != nil {
 		panic(err)
 	}
 
-}
-
-func NewAccessToken(value string) Token {
-	return Token{"AccessToken", value}
 }
 
 func main() {
@@ -162,7 +162,7 @@ func getSecret(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 
 func newUserHandler(w http.ResponseWriter, r *http.Request) {
 	username, email, password := r.FormValue("username"), r.FormValue("email"), r.FormValue("password")
-	uRe, eRe, pRe := UsernameAndPasswordRegex.FindString(username), EmailRegex.FindString(email), UsernameAndPasswordRegex.FindString(username)
+	uRe, eRe, pRe := usernameAndPasswordRegex.FindString(username), emailRegex.FindString(email), usernameAndPasswordRegex.FindString(username)
 
 	if uRe == "" || eRe == "" || pRe == "" {
 		fmt.Fprintln(w, "Username, password or email is not valid")
@@ -177,7 +177,7 @@ func newUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u = User{Id: bson.NewObjectId(), Username: username, Email: email, PasswordHash: password}
+	u = User{ID: bson.NewObjectId(), Username: username, Email: email, PasswordHash: password}
 
 	if err := c.Insert(u); err != nil {
 		panic(err)
@@ -221,7 +221,7 @@ func loginUserHandler(w http.ResponseWriter, r *http.Request) {
 	t := jwt.New(signingMethod)
 
 	t.Claims["AccessToken"] = "1"
-	t.Claims["User"] = u.Id
+	t.Claims["User"] = u.ID
 	t.Claims["Expires"] = time.Now().Add(time.Minute * 15).Unix()
 
 	tokenString, err := t.SignedString(signKey)
@@ -265,7 +265,7 @@ func newRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 		return
 	}
 
-	re = Repository{Id: bson.NewObjectId(), Host: host, User: user, Name: name}
+	re = Repository{ID: bson.NewObjectId(), Host: host, User: user, Name: name}
 
 	if err := c.Insert(re); err != nil {
 		panic(err)
@@ -301,7 +301,7 @@ func newReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	}
 
 	c = session.DB(db).C("reviews")
-	rev := Review{Id: bson.NewObjectId(), Content: review, From: u.Id, Repository: rep.Id}
+	rev := Review{ID: bson.NewObjectId(), Content: review, From: u.ID, Repository: rep.ID}
 
 	if err := c.Insert(rev); err != nil {
 		fmt.Fprintln(w, "something went wrong while inserting the new review!")
