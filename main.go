@@ -156,12 +156,12 @@ func main() {
 
 }
 
-// A test route to check if token authorization work.
+// GetSecretHandler is a test handler to check if access_tokens work.
 func GetSecretHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	fmt.Fprintln(w, "NCSS IS ILLUMINATTI")
 }
 
-// Create a new user.
+// NewUserHandler creates a new user.
 func NewUserHandler(w http.ResponseWriter, r *http.Request) {
 	username, email, password := r.FormValue("username"), r.FormValue("email"), r.FormValue("password")
 	uRe, eRe, pRe := usernameAndPasswordRegex.FindString(username), emailRegex.FindString(email), usernameAndPasswordRegex.FindString(username)
@@ -189,7 +189,7 @@ func NewUserHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%v", u)
 }
 
-// Retrieve a User from the database
+// GetUserHandler retrieves a User from the database
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -204,7 +204,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "We found that user!", u)
 }
 
-// Check the provided login credentials and if valid return an access_token.
+// LoginUserHandler checks the provided login credentials and if valid return an access_token.
 func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	username, password := r.FormValue("username"), r.FormValue("password")
 
@@ -238,7 +238,7 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(Token{Value: tokenString})
 }
 
-// Retrieve the User currently logged in.
+// GetCurrentUserHandler retrieves the User currently logged in.
 func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	id, ok := t.Claims["User"].(string)
 
@@ -251,14 +251,14 @@ func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token)
 	var u User
 
 	if c.Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&u); u == (User{}) {
-		fmt.Fprintln(w, "COuld not find that user!")
+		fmt.Fprintln(w, "Could not find that user!")
 		return
 	}
 
 	json.NewEncoder(w).Encode(u)
 }
 
-// Create a new Repository link.
+// NewRepository creates a new Repository link.
 func NewRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	vars := mux.Vars(r)
 	host, user, name := vars["host"], vars["user"], vars["name"]
@@ -281,7 +281,7 @@ func NewRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	json.NewEncoder(w).Encode(re)
 }
 
-// Create a new Review on a Repository.
+// NewReviewHandler creates a new Review on a Repository.
 func NewReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	vars := mux.Vars(r)
 	host, user, name, review := vars["host"], vars["user"], vars["name"], r.FormValue("review")
@@ -318,12 +318,12 @@ func NewReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	json.NewEncoder(w).Encode(rev)
 }
 
-// Retrieve a Review.
+// GetReviewHandler retrieves a Review.
 func GetReviewHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// Retrieve a Repository.
+// GetRepository retrieves a Repository.
 func GetRepository(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	host, user, name := vars["host"], vars["user"], vars["name"]
@@ -339,7 +339,7 @@ func GetRepository(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(re)
 }
 
-// Add JSON headers onto a request.
+// Headers adds JSON headers onto a request.
 func Headers(fn http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -348,7 +348,7 @@ func Headers(fn http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-// Check if a provided access_token is valid, if it is continue the request.
+// Restrict checks if a provided access_token is valid, if it is continue the request.
 func Restrict(fn func(http.ResponseWriter, *http.Request, *jwt.Token)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenString := r.FormValue("access_token")
