@@ -49,7 +49,7 @@ type Review struct {
 	Rating     int           `bson:"rating" json:"rating"`
 }
 
-// A link to a externally hosted Repository
+// Repository is the representation of a git project on Rr
 type Repository struct {
 	ID   bson.ObjectId `bson:"_id" json:"_id"`
 	Host string        `bson:"host" json:"host"`
@@ -57,7 +57,7 @@ type Repository struct {
 	Name string        `bson:"name" json:"name"`
 }
 
-// Tokens are what is used to tell a client there access_token
+// Token is a container used to send a User their access_token
 type Token struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
@@ -180,7 +180,7 @@ func newUserHandler(w http.ResponseWriter, r *http.Request) {
 	u = User{ID: bson.NewObjectId(), Username: username, Email: email, PasswordHash: password}
 
 	if err := c.Insert(u); err != nil {
-		panic(err)
+		fmt.Fprintln(w, "Unable to create that user at this time.")
 		return
 	}
 
@@ -268,7 +268,7 @@ func newRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	re = Repository{ID: bson.NewObjectId(), Host: host, User: user, Name: name}
 
 	if err := c.Insert(re); err != nil {
-		panic(err)
+		fmt.Fprintln(w, "Currently unable to create that new repo")
 		return
 	}
 
