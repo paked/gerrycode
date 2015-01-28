@@ -63,8 +63,8 @@ type Token struct {
 	Value string `json:"value"`
 }
 
-// MessageResponse is used as a general response for JSON rest requests
-type MessageResponse struct {
+// Response is used as a general response for JSON rest requests
+type Response struct {
 	Status  Status      `json:"status"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data,omitempty"`
@@ -175,7 +175,7 @@ func main() {
 // GetSecretHandler is a test handler to check if access_tokens work.
 // 		GET /secret
 func GetSecretHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
-	json.NewEncoder(w).Encode(MessageResponse{Message: "NCSS IS ILLUMINATTI", Status: NewOKStatus()})
+	json.NewEncoder(w).Encode(Response{Message: "NCSS IS ILLUMINATTI", Status: NewOKStatus()})
 }
 
 // NewUserHandler creates a new user.
@@ -186,7 +186,7 @@ func NewUserHandler(w http.ResponseWriter, r *http.Request) {
 	e := json.NewEncoder(w)
 
 	if uRe == "" || eRe == "" || pRe == "" {
-		e.Encode(MessageResponse{Message: "Your username, password or email is not valid.", Status: NewFailedStatus()})
+		e.Encode(Response{Message: "Your username, password or email is not valid.", Status: NewFailedStatus()})
 		return
 	}
 
@@ -194,18 +194,18 @@ func NewUserHandler(w http.ResponseWriter, r *http.Request) {
 	var u User
 
 	if c.Find(bson.M{"username": username}).One(&u); u != (User{}) {
-		e.Encode(MessageResponse{Message: "That user already exists!", Status: NewFailedStatus()})
+		e.Encode(Response{Message: "That user already exists!", Status: NewFailedStatus()})
 		return
 	}
 
 	u = User{ID: bson.NewObjectId(), Username: username, Email: email, PasswordHash: password}
 
 	if err := c.Insert(u); err != nil {
-		e.Encode(MessageResponse{Message: "Could not submit that user", Status: NewServerErrorStatus()})
+		e.Encode(Response{Message: "Could not submit that user", Status: NewServerErrorStatus()})
 		return
 	}
 
-	e.Encode(MessageResponse{Message: "Here is your user!", Status: NewOKStatus(), Data: u})
+	e.Encode(Response{Message: "Here is your user!", Status: NewOKStatus(), Data: u})
 }
 
 // GetUserHandler retrieves a User from the database
@@ -218,11 +218,11 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	var u User
 
 	if c.Find(bson.M{"username": vars["username"]}).One(&u); u == (User{}) {
-		e.Encode(MessageResponse{Message: "That user does not exist", Status: NewFailedStatus()})
+		e.Encode(Response{Message: "That user does not exist", Status: NewFailedStatus()})
 		return
 	}
 
-	e.Encode(MessageResponse{Message: "We found that user!", Status: NewOKStatus(), Data: u})
+	e.Encode(Response{Message: "We found that user!", Status: NewOKStatus(), Data: u})
 }
 
 // LoginUserHandler checks the provided login credentials and if valid return an access_token.
@@ -232,7 +232,7 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	e := json.NewEncoder(w)
 
 	if username == "" || password == "" {
-		e.Encode(MessageResponse{Message: "That is not a valid username or password", Status: NewFailedStatus()})
+		e.Encode(Response{Message: "That is not a valid username or password", Status: NewFailedStatus()})
 		return
 	}
 
@@ -241,7 +241,7 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	var u User
 
 	if c.Find(bson.M{"username": username, "password_hash": password}).One(&u); u == (User{}) {
-		e.Encode(MessageResponse{Message: "A user with that username and password combination does not exist.", Status: NewFailedStatus()})
+		e.Encode(Response{Message: "A user with that username and password combination does not exist.", Status: NewFailedStatus()})
 		return
 	}
 
@@ -254,11 +254,11 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	tokenString, err := t.SignedString(signKey)
 
 	if err != nil {
-		e.Encode(MessageResponse{Message: "We could not sign the token made for you", Status: NewServerErrorStatus()})
+		e.Encode(Response{Message: "We could not sign the token made for you", Status: NewServerErrorStatus()})
 		return
 	}
 
-	json.NewEncoder(w).Encode(MessageResponse{Message: "Here is your token!", Status: NewOKStatus(), Data: tokenString})
+	json.NewEncoder(w).Encode(Response{Message: "Here is your token!", Status: NewOKStatus(), Data: tokenString})
 }
 
 // GetCurrentUserHandler retrieves the User currently logged in.
@@ -268,7 +268,7 @@ func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token)
 	e := json.NewEncoder(w)
 
 	if !ok {
-		e.Encode(MessageResponse{Message: "Could not cast interface to that bson.ObjectId!", Status: NewServerErrorStatus()})
+		e.Encode(Response{Message: "Could not cast interface to that bson.ObjectId!", Status: NewServerErrorStatus()})
 		return
 	}
 
@@ -276,11 +276,11 @@ func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token)
 	var u User
 
 	if c.Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&u); u == (User{}) {
-		e.Encode(MessageResponse{Message: "Could not find that user!", Status: NewFailedStatus()})
+		e.Encode(Response{Message: "Could not find that user!", Status: NewFailedStatus()})
 		return
 	}
 
-	json.NewEncoder(w).Encode(MessageResponse{Message: "Here is you!", Status: NewOKStatus(), Data: u})
+	json.NewEncoder(w).Encode(Response{Message: "Here is you!", Status: NewOKStatus(), Data: u})
 }
 
 // NewRepository creates a new Repository link.
@@ -294,18 +294,18 @@ func NewRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	var re Repository
 
 	if c.Find(bson.M{"host": host, "user": user, "name": name}).One(&re); re != (Repository{}) {
-		e.Encode(MessageResponse{Message: "That repo already exists", Status: NewFailedStatus()})
+		e.Encode(Response{Message: "That repo already exists", Status: NewFailedStatus()})
 		return
 	}
 
 	re = Repository{ID: bson.NewObjectId(), Host: host, User: user, Name: name}
 
 	if err := c.Insert(re); err != nil {
-		e.Encode(MessageResponse{Message: "Could not insert that repository", Status: NewServerErrorStatus()})
+		e.Encode(Response{Message: "Could not insert that repository", Status: NewServerErrorStatus()})
 		return
 	}
 
-	json.NewEncoder(w).Encode(MessageResponse{Message: "We created that new repository!", Status: NewOKStatus(), Data: re})
+	json.NewEncoder(w).Encode(Response{Message: "We created that new repository!", Status: NewOKStatus(), Data: re})
 }
 
 // NewReviewHandler creates a new Review on a Repository.
@@ -316,7 +316,7 @@ func NewReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	e := json.NewEncoder(w)
 
 	if review == "" {
-		e.Encode(MessageResponse{Message: "Please say something in your review :)", Status: NewFailedStatus()})
+		e.Encode(Response{Message: "Please say something in your review :)", Status: NewFailedStatus()})
 		return
 	}
 
@@ -324,7 +324,7 @@ func NewReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	var rep Repository
 
 	if c.Find(bson.M{"host": host, "user": user, "name": name}).One(&rep); rep == (Repository{}) {
-		e.Encode(MessageResponse{Message: "A repo with that URL doesn't exist :/", Status: NewFailedStatus()})
+		e.Encode(Response{Message: "A repo with that URL doesn't exist :/", Status: NewFailedStatus()})
 		return
 	}
 
@@ -332,7 +332,7 @@ func NewReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	var u User
 
 	if c.Find(bson.M{"_id": bson.ObjectIdHex(t.Claims["User"].(string))}).One(&u); u == (User{}) {
-		e.Encode(MessageResponse{Message: "A user with that id doesnt exist!", Status: NewFailedStatus()})
+		e.Encode(Response{Message: "A user with that id doesnt exist!", Status: NewFailedStatus()})
 		return
 	}
 
@@ -340,11 +340,11 @@ func NewReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	rev := Review{ID: bson.NewObjectId(), Content: review, From: u.ID, Repository: rep.ID}
 
 	if err := c.Insert(rev); err != nil {
-		e.Encode(MessageResponse{Message: "Could not insert that review!", Status: NewServerErrorStatus()})
+		e.Encode(Response{Message: "Could not insert that review!", Status: NewServerErrorStatus()})
 		return
 	}
 
-	e.Encode(MessageResponse{Message: "Congrats you made a review!", Status: NewOKStatus(), Data: rev})
+	e.Encode(Response{Message: "Congrats you made a review!", Status: NewOKStatus(), Data: rev})
 }
 
 // GetReviewHandler retrieves a Review.
@@ -364,11 +364,11 @@ func GetRepository(w http.ResponseWriter, r *http.Request) {
 	var re Repository
 
 	if c.Find(bson.M{"host": host, "user": user, "name": name}).One(&re); re == (Repository{}) {
-		e.Encode(MessageResponse{Message: "That repository does not exist", Status: NewFailedStatus()})
+		e.Encode(Response{Message: "That repository does not exist", Status: NewFailedStatus()})
 		return
 	}
 
-	json.NewEncoder(w).Encode(MessageResponse{Message: "Here is your repo", Status: NewOKStatus(), Data: re})
+	json.NewEncoder(w).Encode(Response{Message: "Here is your repo", Status: NewOKStatus(), Data: re})
 }
 
 // Headers adds JSON headers onto a request.
