@@ -1,3 +1,6 @@
+// repo-review is an open source project for rating and comparing hosted git repositories.
+// Written by Harrison Shoebridge (http://harrisonshoebridge.me) available under the MIT license.
+// Please contribute :) It makes me happy!
 package main
 
 import (
