@@ -22,7 +22,13 @@ class LoginCtrl {
 			}
 		}).
 		done(function(msg) {
+			if (msg.status.error) {
+				console.log(msg.message, self)
+				return
+			}
 			console.log(msg);
+			window.token = msg.token
+			$(location).attr("href", "#/r/pineapples")
 		});
 	}
 
