@@ -37,7 +37,7 @@ type User struct {
 	Username     string        `bson:"username" json:"username"`
 	PasswordHash string        `bson:"password_hash" json:"-"`
 	Email        string        `bson:"email" json:"email"`
-	PasswordSalt string        `bson:"password_salt json:"-"`
+	PasswordSalt string        `bson:"password_salt" json:"-"`
 }
 
 // A Review is created by a User to express their feelings of a particular Repository
