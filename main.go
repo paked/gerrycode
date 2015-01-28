@@ -35,9 +35,9 @@ var (
 type User struct {
 	ID           bson.ObjectId `bson:"_id" json:"_id"`
 	Username     string        `bson:"username" json:"username"`
-	PasswordHash string        `bson:"password_hash" json:"password_hash"`
+	PasswordHash string        `bson:"password_hash" json:"-"`
 	Email        string        `bson:"email" json:"email"`
-	PasswordSalt string
+	PasswordSalt string        `bson:"password_salt json:"-"`
 }
 
 // A Review is created by a User to express their feelings of a particular Repository
@@ -384,19 +384,20 @@ func Headers(fn http.HandlerFunc) http.HandlerFunc {
 func Restrict(fn func(http.ResponseWriter, *http.Request, *jwt.Token)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenString := r.FormValue("access_token")
+		e := json.NewEncoder(w)
 
 		token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
 			return verifyKey, nil
 		})
 
 		if err != nil {
-			fmt.Fprintln(w, "That is not a valid token")
+			e.Encode(Response{Message: "That is not a valid token", Status: NewFailedStatus()})
 			fmt.Println(err)
 			return
 		}
 
 		if !token.Valid {
-			fmt.Fprintln(w, "Something obscurely strange happened to your token")
+			e.Encode(Response{Message: "Something obsurely strange happened to your token", Status: NewServerErrorStatus()})
 		}
 
 		fn(w, r, token)
