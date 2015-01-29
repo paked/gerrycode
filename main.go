@@ -184,11 +184,13 @@ func GetSecretHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 // NewUserHandler creates a new user.
 // 		POST /api/user/create?username=paked&pasword=pw
 func NewUserHandler(w http.ResponseWriter, r *http.Request) {
-	username, email, password := r.FormValue("username"), r.FormValue("email"), r.FormValue("password")
-	uRe, eRe, pRe := usernameAndPasswordRegex.FindString(username), emailRegex.FindString(email), usernameAndPasswordRegex.FindString(username)
+	username := usernameAndPasswordRegex.FindString(r.FormValue("username"))
+	email := emailRegex.FindString(r.FormValue("email"))
+	password := usernameAndPasswordRegex.FindString("password")
+
 	e := json.NewEncoder(w)
 
-	if uRe == "" || eRe == "" || pRe == "" {
+	if username == "" || email == "" || password == "" {
 		e.Encode(Response{Message: "Your username, password or email is not valid.", Status: NewFailedStatus()})
 		return
 	}
