@@ -403,6 +403,7 @@ func Restrict(fn func(http.ResponseWriter, *http.Request, *jwt.Token)) http.Hand
 
 		if !token.Valid {
 			e.Encode(Response{Message: "Something obsurely strange happened to your token", Status: NewServerErrorStatus()})
+			return
 		}
 
 		fn(w, r, token)
