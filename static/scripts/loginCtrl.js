@@ -21,14 +21,14 @@ class LoginCtrl {
 				email: $("#email").val()
 			}
 		}).
-		done(function(msg) {
+		done(msg => {
 			if (msg.status.error) {
-				console.log(msg.message, self)
+				this.error = msg.message;
 				return
 			}
-			console.log(msg);
-			window.token = msg.token
-			$(location).attr("href", "#/r/pineapples")
+
+			window.token = msg.token;
+			$(location).attr("href", "#/r/pineapples");
 		});
 	}
 
