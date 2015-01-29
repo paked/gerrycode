@@ -5,6 +5,7 @@ import (
 	"testing"
 )
 
+// TestValidUsername tests if the username regex works as intended.
 func TestValidUsername(t *testing.T) {
 	r, err := regexp.Compile(usernameAndPasswordRegexString)
 
@@ -37,6 +38,7 @@ func TestValidUsername(t *testing.T) {
 	}
 }
 
+// TestValidEmail tests if the email regex works as intended.
 func TestValidEmail(t *testing.T) {
 	r, err := regexp.Compile(emailRegexString)
 
