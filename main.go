@@ -27,7 +27,7 @@ const (
 )
 
 var (
-	session            *mgo.Session
+	server             *Server
 	verifyKey, signKey []byte
 	signingMethod      jwt.SigningMethod
 
@@ -134,18 +134,24 @@ func init() {
 
 }
 
-func main() {
+type Server struct {
+	Conn   *mgo.Session
+	Router *mux.Router
+}
+
+func (s *Server) ConnectToDatabase(host string) error {
 	var err error
+	s.Conn, err = mgo.Dial(host)
+	return err
+}
 
-	session, err = mgo.Dial("localhost")
-	if err != nil {
-		panic(err)
-	}
+func (s *Server) CloseConnectionDatabase() {
+	s.Conn.Close()
+}
 
-	defer session.Close()
-
-	r := mux.NewRouter()
-	api := r.PathPrefix("/api").Subrouter()
+func (s *Server) InitRouting() {
+	s.Router = mux.NewRouter()
+	api := s.Router.PathPrefix("/api").Subrouter()
 
 	api.HandleFunc("/user/create", Headers(NewUserHandler)).Methods("POST")
 
@@ -163,12 +169,29 @@ func main() {
 
 	api.HandleFunc("/repo/{host}/{user}/{name}", Headers(Restrict(NewRepository))).Methods("POST")
 
-	r.HandleFunc("/secret", Headers(Restrict(GetSecretHandler))).Methods("GET")
+	s.Router.HandleFunc("/secret", Headers(Restrict(GetSecretHandler))).Methods("GET")
 
 	// Serve ALL the static files!
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("static/")))
+	s.Router.PathPrefix("/").Handler(http.FileServer(http.Dir("static/")))
 
-	http.Handle("/", r)
+	http.Handle("/", s.Router)
+}
+
+func NewServer() *Server {
+	s := &Server{}
+
+	err := s.ConnectToDatabase("localhost")
+	if err != nil {
+		panic(err)
+	}
+
+	s.InitRouting()
+
+	return s
+}
+
+func main() {
+	server = NewServer()
 
 	fmt.Println("Loading http server on :8080...")
 
@@ -196,7 +219,7 @@ func NewUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c := session.DB(db).C("users")
+	c := server.Conn.DB(db).C("users")
 
 	var u User
 	if c.Find(bson.M{"username": username}).One(&u); u != (User{}) {
@@ -219,7 +242,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	e := json.NewEncoder(w)
 
-	c := session.DB(db).C("users")
+	c := server.Conn.DB(db).C("users")
 
 	var u User
 	if c.Find(bson.M{"username": vars["username"]}).One(&u); u == (User{}) {
@@ -241,7 +264,7 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c := session.DB(db).C("users")
+	c := server.Conn.DB(db).C("users")
 
 	var u User
 	if c.Find(bson.M{"username": username, "password_hash": password}).One(&u); u == (User{}) {
@@ -276,7 +299,7 @@ func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token)
 		return
 	}
 
-	c := session.DB(db).C("users")
+	c := server.Conn.DB(db).C("users")
 
 	var u User
 	if c.Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&u); u == (User{}) {
@@ -294,7 +317,7 @@ func NewRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	host, user, name := vars["host"], vars["user"], vars["name"]
 	e := json.NewEncoder(w)
 
-	c := session.DB(db).C("repositories")
+	c := server.Conn.DB(db).C("repositories")
 
 	var re Repository
 	if c.Find(bson.M{"host": host, "user": user, "name": name}).One(&re); re != (Repository{}) {
@@ -323,7 +346,7 @@ func NewReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 		return
 	}
 
-	c := session.DB(db).C("repositories")
+	c := server.Conn.DB(db).C("repositories")
 
 	var rep Repository
 	if c.Find(bson.M{"host": host, "user": user, "name": name}).One(&rep); rep == (Repository{}) {
@@ -331,7 +354,7 @@ func NewReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 		return
 	}
 
-	c = session.DB(db).C("users")
+	c = server.Conn.DB(db).C("users")
 
 	var u User
 	if c.Find(bson.M{"_id": bson.ObjectIdHex(t.Claims["User"].(string))}).One(&u); u == (User{}) {
@@ -339,7 +362,7 @@ func NewReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 		return
 	}
 
-	c = session.DB(db).C("reviews")
+	c = server.Conn.DB(db).C("reviews")
 
 	rev := Review{ID: bson.NewObjectId(), Content: review, From: u.ID, Repository: rep.ID}
 	if err := c.Insert(rev); err != nil {
@@ -363,7 +386,7 @@ func GetRepository(w http.ResponseWriter, r *http.Request) {
 	host, user, name := vars["host"], vars["user"], vars["name"]
 	e := json.NewEncoder(w)
 
-	c := session.DB(db).C("repositories")
+	c := server.Conn.DB(db).C("repositories")
 
 	var re Repository
 	if c.Find(bson.M{"host": host, "user": user, "name": name}).One(&re); re == (Repository{}) {
