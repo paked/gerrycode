@@ -1,5 +1,6 @@
 // repo-review is an open source project for rating and comparing hosted git repositories.
-// Written by Harrison Shoebridge (http://harrisonshoebridge.me) available under the MIT license.
+// Written by Harrison Shoebridge (http://github.com/paked) available under the MIT license.
+//
 // Please contribute :) It makes me happy!
 package main
 
@@ -355,7 +356,7 @@ func NewReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 // GetReviewHandler retrieves a Review.
 // 		GET /repo/{host}/{user}/{name}/{review}
 func GetReviewHandler(w http.ResponseWriter, r *http.Request) {
-
+	//TODO
 }
 
 // GetRepository retrieves a Repository.
