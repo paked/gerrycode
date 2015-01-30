@@ -197,15 +197,14 @@ func NewUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	c := session.DB(db).C("users")
-	var u User
 
+	var u User
 	if c.Find(bson.M{"username": username}).One(&u); u != (User{}) {
 		e.Encode(Response{Message: "That user already exists!", Status: NewFailedStatus()})
 		return
 	}
 
 	u = User{ID: bson.NewObjectId(), Username: username, Email: email, PasswordHash: password}
-
 	if err := c.Insert(u); err != nil {
 		e.Encode(Response{Message: "Could not submit that user", Status: NewServerErrorStatus()})
 		return
@@ -221,8 +220,8 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	e := json.NewEncoder(w)
 
 	c := session.DB(db).C("users")
-	var u User
 
+	var u User
 	if c.Find(bson.M{"username": vars["username"]}).One(&u); u == (User{}) {
 		e.Encode(Response{Message: "That user does not exist", Status: NewFailedStatus()})
 		return
@@ -245,7 +244,6 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	c := session.DB(db).C("users")
 
 	var u User
-
 	if c.Find(bson.M{"username": username, "password_hash": password}).One(&u); u == (User{}) {
 		e.Encode(Response{Message: "A user with that username and password combination does not exist.", Status: NewFailedStatus()})
 		return
@@ -279,8 +277,8 @@ func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token)
 	}
 
 	c := session.DB(db).C("users")
-	var u User
 
+	var u User
 	if c.Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&u); u == (User{}) {
 		e.Encode(Response{Message: "Could not find that user!", Status: NewFailedStatus()})
 		return
@@ -297,15 +295,14 @@ func NewRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	e := json.NewEncoder(w)
 
 	c := session.DB(db).C("repositories")
-	var re Repository
 
+	var re Repository
 	if c.Find(bson.M{"host": host, "user": user, "name": name}).One(&re); re != (Repository{}) {
 		e.Encode(Response{Message: "That repo already exists", Status: NewFailedStatus()})
 		return
 	}
 
 	re = Repository{ID: bson.NewObjectId(), Host: host, User: user, Name: name}
-
 	if err := c.Insert(re); err != nil {
 		e.Encode(Response{Message: "Could not insert that repository", Status: NewServerErrorStatus()})
 		return
@@ -327,24 +324,24 @@ func NewReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	}
 
 	c := session.DB(db).C("repositories")
-	var rep Repository
 
+	var rep Repository
 	if c.Find(bson.M{"host": host, "user": user, "name": name}).One(&rep); rep == (Repository{}) {
 		e.Encode(Response{Message: "A repo with that URL doesn't exist :/", Status: NewFailedStatus()})
 		return
 	}
 
 	c = session.DB(db).C("users")
-	var u User
 
+	var u User
 	if c.Find(bson.M{"_id": bson.ObjectIdHex(t.Claims["User"].(string))}).One(&u); u == (User{}) {
 		e.Encode(Response{Message: "A user with that id doesnt exist!", Status: NewFailedStatus()})
 		return
 	}
 
 	c = session.DB(db).C("reviews")
-	rev := Review{ID: bson.NewObjectId(), Content: review, From: u.ID, Repository: rep.ID}
 
+	rev := Review{ID: bson.NewObjectId(), Content: review, From: u.ID, Repository: rep.ID}
 	if err := c.Insert(rev); err != nil {
 		e.Encode(Response{Message: "Could not insert that review!", Status: NewServerErrorStatus()})
 		return
@@ -367,8 +364,8 @@ func GetRepository(w http.ResponseWriter, r *http.Request) {
 	e := json.NewEncoder(w)
 
 	c := session.DB(db).C("repositories")
-	var re Repository
 
+	var re Repository
 	if c.Find(bson.M{"host": host, "user": user, "name": name}).One(&re); re == (Repository{}) {
 		e.Encode(Response{Message: "That repository does not exist", Status: NewFailedStatus()})
 		return
