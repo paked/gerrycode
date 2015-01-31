@@ -25,5 +25,7 @@ _testmain.go
 
 go-github-review
 
+*.rsa*
+
 # #justbowerthings
 static/lib/*
