@@ -2,20 +2,18 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"gopkg.in/mgo.v2/bson"
 	"reflect"
 )
-
-type Modeler interface {
-}
 
 func NewModel() (*Model, error) {
 	return &Model{}, nil
 }
 
 type Model struct {
-	ID         bson.ObjectId
-	Collection string
+	ID         bson.ObjectId `bson:"_id"`
+	Collection string        `bson:"_collection"`
 }
 
 func (m Model) Delete() error {
@@ -28,23 +26,34 @@ func (m Model) Delete() error {
 	return nil
 }
 
-func (m Model) Update(changes bson.M) error {
+func (m *Model) Update(changes bson.M) error {
 	c := server.Collection(m.Collection)
+	fmt.Println(m.ID)
 	if err := c.UpdateId(m.ID, changes); err != nil {
-		return errors.New("Could not update that model")
+		// return errors.New("Could not update that model")
+		return err
 	}
+
+	SetValues(m, changes)
 
 	return nil
 }
 
 //x is a double pointer :-)
-// pass in User{} and {'ID': 'abcdefghidawdsa', 'Username': ''}
-func setValues(x interface{}, values bson.M) {
+// pass in User{} and {'_id': 'abcdefghidawdsa', 'Username': ''}
+func SetValues(x interface{}, values bson.M) {
 	v := reflect.ValueOf(x).Elem()
-	s := reflect.TypeOf(x)
 
-	for key := range values {
-		f := v.FieldByName(key)
-		name, _ := s.FieldByName(key).Tag.Get("bson")
+	for i := 0; i < v.NumField(); i++ {
+		f := v.Type().Field(i)
+		tag := f.Tag.Get("bson")
+
+		if values[tag] == "" {
+			continue
+		}
+
+		val := reflect.ValueOf(values[tag])
+
+		v.Field(i).Set(val)
 	}
 }

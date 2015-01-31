@@ -22,7 +22,7 @@ var (
 
 // User is someone who has registered on the site.
 type User struct {
-	ID           bson.ObjectId `bsttqon:"_id" json:"_id"`
+	ID           bson.ObjectId `bson:"_id" json:"_id"`
 	Username     string        `bson:"username" json:"username"`
 	PasswordHash string        `bson:"password_hash" json:"-"`
 	Email        string        `bson:"email" json:"email"`
