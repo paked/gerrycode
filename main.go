@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
-	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"io/ioutil"
 	"net/http"
@@ -34,72 +33,6 @@ var (
 	usernameAndPasswordRegex *regexp.Regexp // Compiled regex for quicker matching.
 	emailRegex               *regexp.Regexp // Compiled regex for quicker matching.
 )
-
-// User is someone who has registered on the site.
-type User struct {
-	ID           bson.ObjectId `bson:"_id" json:"_id"`
-	Username     string        `bson:"username" json:"username"`
-	PasswordHash string        `bson:"password_hash" json:"-"`
-	Email        string        `bson:"email" json:"email"`
-	PasswordSalt string        `bson:"password_salt" json:"-"`
-}
-
-// A Review is created by a User to express their feelings of a particular Repository
-type Review struct {
-	ID         bson.ObjectId `bson:"_id" json:"_id"`
-	From       bson.ObjectId `bson:"from" json:"from"`
-	Repository bson.ObjectId `bson:"repository" json:"repository"`
-	Content    string        `bson:"content" json:"content"`
-	Rating     int           `bson:"rating" json:"rating"`
-}
-
-// Repository is the representation of a git project on Rr
-type Repository struct {
-	ID   bson.ObjectId `bson:"_id" json:"_id"`
-	Host string        `bson:"host" json:"host"`
-	User string        `bson:"user" json:"user"`
-	Name string        `bson:"name" json:"name"`
-}
-
-// Token is a container used to send a User their access_token
-type Token struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
-}
-
-// Response is used as a general response for JSON rest requests
-type Response struct {
-	Status  Status      `json:"status"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
-}
-
-// Status represents a general http error
-type Status struct {
-	Code    int    `bson:"code" json:"code"`
-	Message string `bson:"message" json:"message"`
-	Error   bool   `bson:"error" json:"error"`
-}
-
-// NewOKStatus returns a new Status object with no errors.
-func NewOKStatus() Status {
-	return Status{http.StatusOK, "Everything is awesome!", false}
-}
-
-// NewFailedStatus returns a new Status object saying a request failed.
-func NewFailedStatus() Status {
-	return Status{http.StatusConflict, "Well this is awkward...", true}
-}
-
-// NewForbiddenStatus returns a new Status object detailing a failure of authorization.
-func NewForbiddenStatus() Status {
-	return Status{http.StatusForbidden, "You can't go here :)", true}
-}
-
-// NewServerErrorStatus returns a new Status object saying a server error has occured
-func NewServerErrorStatus() Status {
-	return Status{http.StatusInternalServerError, "Something bad has happened, we're sending the calvalry.", true}
-}
 
 func init() {
 	var err error
@@ -132,62 +65,6 @@ func init() {
 		panic(err)
 	}
 
-}
-
-type Server struct {
-	Conn   *mgo.Session
-	Router *mux.Router
-}
-
-func (s *Server) ConnectToDatabase(host string) error {
-	var err error
-	s.Conn, err = mgo.Dial(host)
-	return err
-}
-
-func (s *Server) CloseConnectionDatabase() {
-	s.Conn.Close()
-}
-
-func (s *Server) InitRouting() {
-	s.Router = mux.NewRouter()
-	api := s.Router.PathPrefix("/api").Subrouter()
-
-	api.HandleFunc("/user/create", Headers(NewUserHandler)).Methods("POST")
-
-	api.HandleFunc("/user/login", Headers(LoginUserHandler)).Methods("POST")
-
-	api.HandleFunc("/user", Headers(Restrict(GetCurrentUserHandler))).Methods("GET")
-
-	api.HandleFunc("/user/{username}", Headers(GetUserHandler)).Methods("GET")
-
-	api.HandleFunc("/repo/{host}/{user}/{name}/review", Headers(Restrict(NewReviewHandler))).Methods("POST")
-
-	api.HandleFunc("/repo/{host}/{user}/{name}/{review}", Headers(GetReviewHandler)).Methods("GET")
-
-	api.HandleFunc("/repo/{host}/{user}/{name}", Headers(GetRepository)).Methods("GET")
-
-	api.HandleFunc("/repo/{host}/{user}/{name}", Headers(Restrict(NewRepository))).Methods("POST")
-
-	s.Router.HandleFunc("/secret", Headers(Restrict(GetSecretHandler))).Methods("GET")
-
-	// Serve ALL the static files!
-	s.Router.PathPrefix("/").Handler(http.FileServer(http.Dir("static/")))
-
-	http.Handle("/", s.Router)
-}
-
-func NewServer() *Server {
-	s := &Server{}
-
-	err := s.ConnectToDatabase("localhost")
-	if err != nil {
-		panic(err)
-	}
-
-	s.InitRouting()
-
-	return s
 }
 
 func main() {
@@ -395,38 +272,4 @@ func GetRepository(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(Response{Message: "Here is your repo", Status: NewOKStatus(), Data: re})
-}
-
-// Headers adds JSON headers onto a request.
-func Headers(fn http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-
-		fn(w, r)
-	}
-}
-
-// Restrict checks if a provided access_token is valid, if it is continue the request.
-func Restrict(fn func(http.ResponseWriter, *http.Request, *jwt.Token)) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		tokenString := r.FormValue("access_token")
-		e := json.NewEncoder(w)
-
-		token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
-			return verifyKey, nil
-		})
-
-		if err != nil {
-			e.Encode(Response{Message: "That is not a valid token", Status: NewFailedStatus()})
-			fmt.Println(err)
-			return
-		}
-
-		if !token.Valid {
-			e.Encode(Response{Message: "Something obsurely strange happened to your token", Status: NewServerErrorStatus()})
-			return
-		}
-
-		fn(w, r, token)
-	}
 }

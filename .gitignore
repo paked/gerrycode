@@ -23,5 +23,7 @@ _testmain.go
 *.test
 *.prof
 
+go-github-review
+
 # #justbowerthings
 static/lib/*
