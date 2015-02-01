@@ -28,8 +28,10 @@ func (m Model) Delete() error {
 
 func (m *Model) Update(changes bson.M) error {
 	c := server.Collection(m.Collection)
-	fmt.Println(m.ID)
-	if err := c.UpdateId(m.ID, changes); err != nil {
+
+	// fmt.Printf("M: %v %T U: %v %T\n", m.ID, m.ID, u.ID, u.ID)
+	if err := c.Update(bson.M{"model": bson.M{"_id": m.ID}}, changes); err != nil {
+		fmt.Println("Could not update model: ", err)
 		// return errors.New("Could not update that model")
 		return err
 	}

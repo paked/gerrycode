@@ -19,26 +19,28 @@ func TestSetValues(t *testing.T) {
 		t.Error("Username should equal `paked`")
 	}
 
-	fmt.Println(s)
+	// fmt.Println(s)
 }
 
 type Dog struct {
-	Model `bson:"-"`
+	Model `bson:"model"`
 
 	Name  string `bson:"name"`
-	Owner string `bson:"bob"`
+	Owner string `bson:"owner"`
 	Age   int    `bson:"age"`
 }
 
 func NewDog() *Dog {
-	c := server.Collection("dogs")
-	// dog := &Dog{Model: Model{Collection: "dogs", ID: bson.NewObjectId()}}
-	dog := &Dog{}
-	dog.ID = bson.NewObjectId()
-	dog.Collection = "dogs"
+	dog := &Dog{Model: Model{Collection: "dogs", ID: bson.NewObjectId()}}
+	// dog := &Dog{}
+	// dog.ID = bson.NewObjectId()
+	// dog.Collection = "dogs"
+
+	c := server.Collection(dog.Collection)
 
 	err := c.Insert(dog)
 	if err != nil {
+		fmt.Println("ERROR INSERTING", err)
 		return nil
 	}
 
@@ -49,9 +51,10 @@ func NewDogWithValues(values bson.M) *Dog {
 	dog := NewDog()
 	err := dog.Update(values)
 	if err != nil {
+		fmt.Println("ERROR UPDATING MODEL", err)
 		// panic(err)
 	}
-	fmt.Println(dog, "<--- that is dog equals: ", dog.ID == dog.Model.ID)
+	// fmt.Println(dog, "<--- that is dog equals: ", dog.ID == dog.Model.ID)
 	return dog
 }
 
@@ -85,7 +88,7 @@ func TestDog(t *testing.T) {
 		t.Error("You should have found the dog!")
 	}
 
-	fmt.Println(d, e, User{ID: bson.NewObjectId()})
+	// fmt.Println(d, e, User{ID: bson.NewObjectId()})
 
 	d.Delete()
 }
