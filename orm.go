@@ -1,45 +1,42 @@
 package main
 
 import (
-	"errors"
-	"fmt"
 	"gopkg.in/mgo.v2/bson"
 	"reflect"
 )
 
-func NewModel() (*Model, error) {
-	return &Model{}, nil
+// Modeller is an interface for use with the ORM, describing a model.
+type Modeller interface {
+	ID() bson.ObjectId
+	C() string
 }
 
-type Model struct {
-	ID         bson.ObjectId `bson:"_id"`
-	Collection string        `bson:"_collection"`
-}
-
-func (m Model) Delete() error {
-	c := server.Collection(m.Collection)
-
-	if err := c.RemoveId(m.ID); err != nil {
-		return errors.New("Could not remove that model")
-	}
-
-	return nil
-}
-
-func (m *Model) Update(changes bson.M) error {
-	c := server.Collection(m.Collection)
-	fmt.Println(m.ID)
-	if err := c.UpdateId(m.ID, changes); err != nil {
-		// return errors.New("Could not update that model")
+// UpdateModel updates a Modeller interface with the provided values in persistent storage.
+// It is an alias function for UpdateModel, and then UpdateValues.
+func UpdateModel(m Modeller, values bson.M) error {
+	if err := UpdateValues(m, values); err != nil {
 		return err
 	}
 
-	SetValues(m, changes)
+	SetValues(m, values)
 
 	return nil
 }
 
-//x is a double pointer :-)
+// UpdateValues updates a model in the MongoDB.
+func UpdateValues(m Modeller, values bson.M) error {
+	c := server.Collection(m.C())
+
+	return c.UpdateId(m.ID(), bson.M{"$set": values})
+}
+
+// Restore a model from a persisted MongoDB record.
+func RestoreModel(m Modeller, id bson.ObjectId) error {
+	c := server.Collection(m.C())
+
+	return c.FindId(id).One(m)
+}
+
 // pass in User{} and {'_id': 'abcdefghidawdsa', 'Username': ''}
 func SetValues(x interface{}, values bson.M) {
 	v := reflect.ValueOf(x).Elem()
@@ -48,12 +45,16 @@ func SetValues(x interface{}, values bson.M) {
 		f := v.Type().Field(i)
 		tag := f.Tag.Get("bson")
 
-		if values[tag] == "" {
+		val := reflect.ValueOf(values[tag])
+
+		if !val.IsValid() || empty(val) {
 			continue
 		}
 
-		val := reflect.ValueOf(values[tag])
-
 		v.Field(i).Set(val)
 	}
+}
+
+func empty(x interface{}) bool {
+	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
 }
