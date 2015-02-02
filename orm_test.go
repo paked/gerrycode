@@ -5,18 +5,6 @@ import (
 	"testing"
 )
 
-func TestSetValues(t *testing.T) {
-	// type S struct {
-	// ID bson.ObjectId `bson:"_id"`
-	// Username string `bson:"username"`
-	// }
-	// s := S{}
-	// SetValues(&s, bson.M{"_id": bson.NewObjectId(), "username": "paked"})
-	// if s.Username != "paked" {
-	// t.Error("Username should equal `paked`")
-	// }
-}
-
 type Dog struct {
 	BID   bson.ObjectId `bson:"_id"`
 	Name  string        `bson:"name"`
@@ -27,6 +15,7 @@ type Dog struct {
 func (d Dog) ID() bson.ObjectId {
 	return d.BID
 }
+
 func (d Dog) C() string {
 	return "dogs"
 }
@@ -50,13 +39,28 @@ func TestModeller(t *testing.T) {
 		t.Error("Age should be 5, not ", d.Age)
 	}
 }
+
 func TestPersist(t *testing.T) {
 	e := &Dog{}
 	err := RestoreModel(e, d.ID())
 	if err != nil {
 		t.Error("Error restoring model:", err)
 	}
+
 	if e.ID() != d.ID() {
 		t.Error("This is not the same model...")
+	}
+}
+
+func TestRemove(t *testing.T) {
+	if err := RemoveModel(d); err != nil {
+		t.Error("Could not remove model:", err)
+		t.FailNow()
+	}
+
+	e := &Dog{}
+
+	if err := RestoreModel(e, d.ID()); err == nil {
+		t.Error("Model found.")
 	}
 }
