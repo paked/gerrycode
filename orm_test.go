@@ -6,14 +6,14 @@ import (
 )
 
 type Dog struct {
-	BID   bson.ObjectId `bson:"_id"`
+	ID    bson.ObjectId `bson:"_id"`
 	Name  string        `bson:"name"`
 	Owner string        `bson:"owner"`
 	Age   int           `bson:"age"`
 }
 
-func (d Dog) ID() bson.ObjectId {
-	return d.BID
+func (d Dog) BID() bson.ObjectId {
+	return d.ID
 }
 
 func (d Dog) C() string {
@@ -24,7 +24,7 @@ var d *Dog
 
 func TestModeller(t *testing.T) {
 	server = NewServer()
-	d = &Dog{BID: bson.NewObjectId(), Name: "Doggy", Owner: "James", Age: 10}
+	d = &Dog{ID: bson.NewObjectId(), Name: "Doggy", Owner: "James", Age: 10}
 	c := server.Collection(d.C())
 
 	if err := c.Insert(d); err != nil {
@@ -44,13 +44,13 @@ func TestModeller(t *testing.T) {
 
 func TestPersist(t *testing.T) {
 	e := &Dog{}
-	err := RestoreModel(e, d.ID())
+	err := RestoreModel(e, d.BID())
 
 	if err != nil {
 		t.Error("Error restoring model:", err)
 	}
 
-	if e.ID() != d.ID() {
+	if e.BID() != d.BID() {
 		t.Error("This is not the same model...")
 	}
 }
@@ -63,7 +63,7 @@ func TestRemove(t *testing.T) {
 
 	e := &Dog{}
 
-	if err := RestoreModel(e, d.ID()); err == nil {
+	if err := RestoreModel(e, d.BID()); err == nil {
 		t.Error("Model found.")
 	}
 }

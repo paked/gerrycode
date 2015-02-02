@@ -29,6 +29,14 @@ type User struct {
 	PasswordSalt string        `bson:"password_salt" json:"-"`
 }
 
+func (u User) BID() bson.ObjectId {
+	return u.ID
+}
+
+func (u User) C() string {
+	return "users"
+}
+
 // NewUserHandler creates a new user.
 // 		POST /api/user/create?username=paked&pasword=pw
 func NewUserHandler(w http.ResponseWriter, r *http.Request) {

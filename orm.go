@@ -7,7 +7,7 @@ import (
 
 // Modeller is an interface for use with the ORM, describing a model.
 type Modeller interface {
-	ID() bson.ObjectId
+	BID() bson.ObjectId
 	C() string
 }
 
@@ -27,14 +27,14 @@ func UpdateModel(m Modeller, values bson.M) error {
 func RemoveModel(m Modeller) error {
 	c := server.Collection(m.C())
 
-	return c.RemoveId(m.ID())
+	return c.RemoveId(m.BID())
 }
 
 // UpdateValues updates a model in the MongoDB.
 func updateValues(m Modeller, values bson.M) error {
 	c := server.Collection(m.C())
 
-	return c.UpdateId(m.ID(), bson.M{"$set": values})
+	return c.UpdateId(m.BID(), bson.M{"$set": values})
 }
 
 // Restore a model from a persisted MongoDB record.
