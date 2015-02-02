@@ -26,15 +26,17 @@ func TestModeller(t *testing.T) {
 	server = NewServer()
 	d = &Dog{BID: bson.NewObjectId(), Name: "Doggy", Owner: "James", Age: 10}
 	c := server.Collection(d.C())
-	err := c.Insert(d)
-	if err != nil {
+
+	if err := c.Insert(d); err != nil {
 		t.Error("Could not insert that model", err)
 		t.FailNow()
 	}
+
 	if err := UpdateModel(d, bson.M{"age": 5}); err != nil {
 		t.Error("Could not udpate model", err)
 		t.FailNow()
 	}
+
 	if d.Age != 5 {
 		t.Error("Age should be 5, not ", d.Age)
 	}
@@ -43,6 +45,7 @@ func TestModeller(t *testing.T) {
 func TestPersist(t *testing.T) {
 	e := &Dog{}
 	err := RestoreModel(e, d.ID())
+
 	if err != nil {
 		t.Error("Error restoring model:", err)
 	}
