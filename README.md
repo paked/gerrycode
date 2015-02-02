@@ -3,6 +3,7 @@ A project designed to help developers find the best open source projects to cont
 
 #Generate your keys!
 In order for JWTs to work, you need a public and a private key. Here are some simple steps to do this
+
 1. ```openssl genrsa -out app.rsa 1024```
 2. ```openssl rsa -in app.rsa -pubout > app.rsa.pub```
 
