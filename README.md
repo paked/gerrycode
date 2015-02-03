@@ -1,4 +1,4 @@
-# go-github-review
+# go-repo-review
 A project designed to help developers find the best open source projects to contribute to, or depend on.
 
 #Generate your keys!
