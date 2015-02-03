@@ -48,11 +48,16 @@ func updateValues(m Modeller, values bson.M) error {
 	return c.UpdateId(m.BID(), bson.M{"$set": values})
 }
 
-// Restore a model from a persisted MongoDB record.
-func RestoreModel(m Modeller, id bson.ObjectId) error {
+// Restore using it's ID as search key a model from a persisted MongoDB record.
+func RestoreModelByID(m Modeller, id bson.ObjectId) error {
+	return RestoreModel(m, bson.M{"_id": id})
+}
+
+// Restore a model through any search
+func RestoreModel(m Modeller, values bson.M) error {
 	c := server.Collection(m.C())
 
-	return c.FindId(id).One(m)
+	return c.Find(values).One(m)
 }
 
 func setValues(x interface{}, values bson.M) {

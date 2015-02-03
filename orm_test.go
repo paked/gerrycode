@@ -43,7 +43,7 @@ func TestModeller(t *testing.T) {
 
 func TestPersist(t *testing.T) {
 	e := &Dog{}
-	err := RestoreModel(e, d.BID())
+	err := RestoreModelByID(e, d.BID())
 
 	if err != nil {
 		t.Error("Error restoring model:", err)
