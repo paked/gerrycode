@@ -39,8 +39,7 @@ func (u User) C() string {
 
 func (u User) WriteReview(c string, id bson.ObjectId) (Review, error) {
 	rev := Review{ID: bson.NewObjectId(), From: u.ID, Repository: id, Content: c}
-
-	return rev, CreateModel(rev)
+	return rev, CreateModel(&rev)
 }
 
 func LoginUser(username string, password string) (bool, User, error) {
