@@ -25,10 +25,9 @@ var d *Dog
 func TestModeller(t *testing.T) {
 	server = NewServer()
 	d = &Dog{ID: bson.NewObjectId(), Name: "Doggy", Owner: "James", Age: 10}
-	c := server.Collection(d.C())
 
-	if err := c.Insert(d); err != nil {
-		t.Error("Could not insert that model", err)
+	if err := CreateModel(d); err != nil {
+		t.Error("Could not create that model")
 		t.FailNow()
 	}
 

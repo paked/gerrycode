@@ -11,6 +11,17 @@ type Modeller interface {
 	C() string
 }
 
+//CreateModel creates a copy of the model and persists it in the DB.
+func CreateModel(m Modeller) error {
+	c := server.Collection(m.C())
+
+	if err := c.Insert(m); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // UpdateModel updates a Modeller interface with the provided values in persistent storage.
 // It is an alias function for UpdateModel, and then UpdateValues.
 func UpdateModel(m Modeller, values bson.M) error {

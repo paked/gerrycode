@@ -37,6 +37,17 @@ func (u User) C() string {
 	return "users"
 }
 
+func LoginUser(username string, password string) (bool, User, error) {
+	u := User{}
+
+	c := server.Collection(u.C())
+	if err := c.Find(bson.M{"username": username, "password": password}).One(&u); err != nil && u == (User{}) {
+		return false, User{}, err
+	}
+
+	return true, u, nil
+}
+
 // NewUserHandler creates a new user.
 // 		POST /api/user/create?username=paked&pasword=pw
 func NewUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -96,11 +107,10 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c := server.Collection("users")
+	res, u, err := LoginUser(username, password)
 
-	var u User
-	if c.Find(bson.M{"username": username, "password_hash": password}).One(&u); u == (User{}) {
-		e.Encode(Response{Message: "A user with that username and password combination does not exist.", Status: NewFailedStatus()})
+	if err != nil || !res {
+		e.Encode(Response{Message: "Could not find your user :)", Status: NewFailedStatus()})
 		return
 	}
 
