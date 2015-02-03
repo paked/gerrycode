@@ -17,6 +17,14 @@ type Review struct {
 	Rating     int           `bson:"rating" json:"rating"`
 }
 
+func (rev Review) C() string {
+	return "reviews"
+}
+
+func (rev Review) BID() bson.ObjectId {
+	return rev.ID
+}
+
 // NewReviewHandler creates a new Review on a Repository.
 // 		POST /api/repo/{repository}/review?text=This+sucks&rating=2&access_token=xxx
 func NewReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {

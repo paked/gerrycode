@@ -62,7 +62,7 @@ func TestRemove(t *testing.T) {
 
 	e := &Dog{}
 
-	if err := RestoreModel(e, d.BID()); err == nil {
+	if err := RestoreModelByID(e, d.BID()); err == nil {
 		t.Error("Model found.")
 	}
 }
