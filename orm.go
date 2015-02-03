@@ -7,27 +7,45 @@ import (
 
 // Modeller is an interface for use with the ORM, describing a model.
 type Modeller interface {
-	ID() bson.ObjectId
+	BID() bson.ObjectId
 	C() string
+}
+
+//CreateModel creates a copy of the model and persists it in the DB.
+func CreateModel(m Modeller) error {
+	c := server.Collection(m.C())
+
+	if err := c.Insert(m); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // UpdateModel updates a Modeller interface with the provided values in persistent storage.
 // It is an alias function for UpdateModel, and then UpdateValues.
 func UpdateModel(m Modeller, values bson.M) error {
-	if err := UpdateValues(m, values); err != nil {
+	if err := updateValues(m, values); err != nil {
 		return err
 	}
 
-	SetValues(m, values)
+	setValues(m, values)
 
 	return nil
 }
 
-// UpdateValues updates a model in the MongoDB.
-func UpdateValues(m Modeller, values bson.M) error {
+// Remove removes a model from the MongoDB.
+func RemoveModel(m Modeller) error {
 	c := server.Collection(m.C())
 
-	return c.UpdateId(m.ID(), bson.M{"$set": values})
+	return c.RemoveId(m.BID())
+}
+
+// UpdateValues updates a model in the MongoDB.
+func updateValues(m Modeller, values bson.M) error {
+	c := server.Collection(m.C())
+
+	return c.UpdateId(m.BID(), bson.M{"$set": values})
 }
 
 // Restore a model from a persisted MongoDB record.
@@ -37,8 +55,7 @@ func RestoreModel(m Modeller, id bson.ObjectId) error {
 	return c.FindId(id).One(m)
 }
 
-// pass in User{} and {'_id': 'abcdefghidawdsa', 'Username': ''}
-func SetValues(x interface{}, values bson.M) {
+func setValues(x interface{}, values bson.M) {
 	v := reflect.ValueOf(x).Elem()
 
 	for i := 0; i < v.NumField(); i++ {
