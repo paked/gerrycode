@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2/bson"
@@ -44,10 +46,12 @@ func (u User) WriteReview(c string, id bson.ObjectId) (Review, error) {
 
 func LoginUser(username string, password string) (bool, User, error) {
 	u := User{}
+	if err := RestoreModel(&u, bson.M{"username": username, "password": password}); err != nil {
+		return false, u, err
+	}
 
-	c := server.Collection(u.C())
-	if err := c.Find(bson.M{"username": username, "password": password}).One(&u); err != nil && u == (User{}) {
-		return false, User{}, err
+	if u == (User{}) {
+		return false, u, errors.New("Could not find model!")
 	}
 
 	return true, u, nil
@@ -67,16 +71,14 @@ func NewUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c := server.Collection("users")
-
 	var u User
-	if c.Find(bson.M{"username": username}).One(&u); u != (User{}) {
-		e.Encode(Response{Message: "That user already exists!", Status: NewFailedStatus()})
+	if err := RestoreModel(&u, bson.M{"username": username}); err == nil {
+		e.Encode(Response{Message: "That user already exists!", Status: NewFailedStatus(), Data: u})
 		return
 	}
 
 	u = User{ID: bson.NewObjectId(), Username: username, Email: email, PasswordHash: password}
-	if err := c.Insert(u); err != nil {
+	if err := CreateModel(u); err != nil {
 		e.Encode(Response{Message: "Could not submit that user", Status: NewServerErrorStatus()})
 		return
 	}
@@ -90,10 +92,8 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	e := json.NewEncoder(w)
 
-	c := server.Collection("users")
-
 	var u User
-	if c.Find(bson.M{"username": vars["username"]}).One(&u); u == (User{}) {
+	if err := RestoreModel(&u, bson.M{"username": vars["username"]}); err != nil {
 		e.Encode(Response{Message: "That user does not exist", Status: NewFailedStatus()})
 		return
 	}
@@ -146,10 +146,8 @@ func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token)
 		return
 	}
 
-	c := server.Collection("users")
-
 	var u User
-	if c.Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&u); u == (User{}) {
+	if err := RestoreModelByID(&u, bson.ObjectIdHex(id)); err != nil {
 		e.Encode(Response{Message: "Could not find that user!", Status: NewFailedStatus()})
 		return
 	}

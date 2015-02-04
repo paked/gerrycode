@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"gopkg.in/mgo.v2/bson"
 	"reflect"
 )
@@ -57,7 +58,17 @@ func RestoreModelByID(m Modeller, id bson.ObjectId) error {
 func RestoreModel(m Modeller, values bson.M) error {
 	c := server.Collection(m.C())
 
-	return c.Find(values).One(m)
+	err := c.Find(values).One(m)
+	if err != nil {
+		return err
+	}
+
+	if empty(m) {
+		return errors.New("Could not find that model")
+	}
+
+	return nil
+
 }
 
 func setValues(x interface{}, values bson.M) {
