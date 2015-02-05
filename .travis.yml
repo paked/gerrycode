@@ -1,10 +1,10 @@
 language: go
 
 go:
- - release
+ - 1.4
 
-install:
- - go get .
+services: 
+ - mongodb
 
 before_script:
  - mkdir keys
