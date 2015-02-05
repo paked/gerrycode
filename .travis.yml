@@ -1,0 +1,15 @@
+language: go
+
+go:
+ - 1.4
+
+services: 
+ - mongodb
+
+before_script:
+ - mkdir keys
+ - openssl genrsa -out keys/app.rsa 1024
+ - openssl rsa -in keys/app.rsa -pubout > keys/app.rsa.pub
+
+script:
+- go test -v 

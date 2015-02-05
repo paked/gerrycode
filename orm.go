@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"gopkg.in/mgo.v2/bson"
 	"reflect"
 )
@@ -11,8 +12,8 @@ type Modeller interface {
 	C() string
 }
 
-//CreateModel creates a copy of the model and persists it in the DB.
-func CreateModel(m Modeller) error {
+//PersistModel creates a copy of the model and persists it in the DB.
+func PersistModel(m Modeller) error {
 	c := server.Collection(m.C())
 
 	if err := c.Insert(m); err != nil {
@@ -57,7 +58,17 @@ func RestoreModelByID(m Modeller, id bson.ObjectId) error {
 func RestoreModel(m Modeller, values bson.M) error {
 	c := server.Collection(m.C())
 
-	return c.Find(values).One(m)
+	err := c.Find(values).One(m)
+	if err != nil {
+		return err
+	}
+
+	if empty(m) {
+		return errors.New("Could not find that model")
+	}
+
+	return nil
+
 }
 
 func setValues(x interface{}, values bson.M) {

@@ -26,7 +26,7 @@ func TestModeller(t *testing.T) {
 	server = NewServer()
 	d = &Dog{ID: bson.NewObjectId(), Name: "Doggy", Owner: "James", Age: 10}
 
-	if err := CreateModel(d); err != nil {
+	if err := PersistModel(d); err != nil {
 		t.Error("Could not create that model")
 		t.FailNow()
 	}

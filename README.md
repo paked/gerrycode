@@ -1,4 +1,4 @@
-# go-repo-review
+# go-repo-review [![Build Status](https://travis-ci.org/paked/go-repo-review.svg)](https://travis-ci.org/paked/go-repo-review)
 A project designed to help developers find the best open source projects to contribute to, or depend on.
 
 #Generate your keys!
