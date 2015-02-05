@@ -40,7 +40,7 @@ func (u User) C() string {
 
 func (u User) WriteReview(c string, id bson.ObjectId) (Review, error) {
 	rev := Review{ID: bson.NewObjectId(), From: u.ID, Repository: id, Content: c}
-	return rev, CreateModel(&rev)
+	return rev, PersistModel(&rev)
 }
 
 func LoginUser(username string, password string) (bool, User, error) {
@@ -77,7 +77,7 @@ func NewUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	u = User{ID: bson.NewObjectId(), Username: username, Email: email, PasswordHash: password}
-	if err := CreateModel(u); err != nil {
+	if err := PersistModel(u); err != nil {
 		e.Encode(Response{Message: "Could not submit that user", Status: NewServerErrorStatus()})
 		return
 	}

@@ -12,8 +12,8 @@ type Modeller interface {
 	C() string
 }
 
-//CreateModel creates a copy of the model and persists it in the DB.
-func CreateModel(m Modeller) error {
+//PersistModel creates a copy of the model and persists it in the DB.
+func PersistModel(m Modeller) error {
 	c := server.Collection(m.C())
 
 	if err := c.Insert(m); err != nil {
