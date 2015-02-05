@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"io/ioutil"
+	"os"
 	"regexp"
 )
 
@@ -14,14 +15,14 @@ func generateKeys() {
 
 	if err != nil {
 		fmt.Println("Could not find your private key!")
-		panic(err)
+		os.Exit(1)
 	}
 
 	verifyKey, err = ioutil.ReadFile(*publicKeyPath)
 
 	if err != nil {
 		fmt.Println("Could not find your public key!")
-		panic(err)
+		os.Exit(1)
 	}
 
 	signingMethod = jwt.GetSigningMethod("RS256")
@@ -32,12 +33,14 @@ func createUserRegex() {
 	usernameAndPasswordRegex, err = regexp.Compile(usernameAndPasswordRegexString)
 
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
 	emailRegex, err = regexp.Compile(emailRegexString)
 
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }
