@@ -2,7 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
+	// "errors"
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2/bson"
@@ -43,17 +44,14 @@ func (u User) WriteReview(c string, id bson.ObjectId) (Review, error) {
 	return rev, PersistModel(&rev)
 }
 
-func LoginUser(username string, password string) (bool, User, error) {
+func LoginUser(username string, password string) (User, error) {
 	u := User{}
-	if err := RestoreModel(&u, bson.M{"username": username, "password": password}); err != nil {
-		return false, u, err
+	if err := RestoreModel(&u, bson.M{"username": username, "password_hash": password}); err != nil {
+		fmt.Println(u, err)
+		return u, err
 	}
 
-	if u == (User{}) {
-		return false, u, errors.New("Could not find model!")
-	}
-
-	return true, u, nil
+	return u, nil
 }
 
 // NewUserHandler creates a new user.
@@ -61,7 +59,7 @@ func LoginUser(username string, password string) (bool, User, error) {
 func NewUserHandler(w http.ResponseWriter, r *http.Request) {
 	username := usernameAndPasswordRegex.FindString(r.FormValue("username"))
 	email := emailRegex.FindString(r.FormValue("email"))
-	password := usernameAndPasswordRegex.FindString("password")
+	password := usernameAndPasswordRegex.FindString(r.FormValue("password"))
 
 	e := json.NewEncoder(w)
 
@@ -111,9 +109,10 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, u, err := LoginUser(username, password)
+	u, err := LoginUser(username, password)
 
-	if err != nil || !res {
+	if err != nil {
+		// fmt.Println(err, res, u, username, password)
 		e.Encode(Response{Message: "Could not find your user :)", Status: NewFailedStatus()})
 		return
 	}
