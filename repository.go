@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
+	"github.com/paked/models"
 	"gopkg.in/mgo.v2/bson"
 	"net/http"
 )
@@ -31,21 +32,19 @@ func NewRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	host, user, name := vars["host"], vars["user"], vars["name"]
 	e := json.NewEncoder(w)
 
-	c := server.Collection("repositories")
-
-	var re Repository
-	if c.Find(bson.M{"host": host, "user": user, "name": name}).One(&re); re != (Repository{}) {
+	var rep Repository
+	if err := models.Restore(&rep, bson.M{"host": host, "user": user, "name": name}); err == nil {
 		e.Encode(Response{Message: "That repo already exists", Status: NewFailedStatus()})
 		return
 	}
 
-	re = Repository{ID: bson.NewObjectId(), Host: host, User: user, Name: name}
-	if err := c.Insert(re); err != nil {
+	rep = Repository{ID: bson.NewObjectId(), Host: host, User: user, Name: name}
+	if err := models.Persist(rep); err != nil {
 		e.Encode(Response{Message: "Could not insert that repository", Status: NewServerErrorStatus()})
 		return
 	}
 
-	json.NewEncoder(w).Encode(Response{Message: "We created that new repository!", Status: NewOKStatus(), Data: re})
+	json.NewEncoder(w).Encode(Response{Message: "We created that new repository!", Status: NewOKStatus(), Data: rep})
 }
 
 // GetRepository retrieves a Repository.
@@ -55,13 +54,11 @@ func GetRepository(w http.ResponseWriter, r *http.Request) {
 	host, user, name := vars["host"], vars["user"], vars["name"]
 	e := json.NewEncoder(w)
 
-	c := server.Collection("repositories")
-
-	var re Repository
-	if c.Find(bson.M{"host": host, "user": user, "name": name}).One(&re); re == (Repository{}) {
+	var rep Repository
+	if err := models.Restore(&rep, bson.M{"host": host, "user": user, "name": name}); err != nil {
 		e.Encode(Response{Message: "That repository does not exist", Status: NewFailedStatus()})
 		return
 	}
 
-	json.NewEncoder(w).Encode(Response{Message: "Here is your repo", Status: NewOKStatus(), Data: re})
+	json.NewEncoder(w).Encode(Response{Message: "Here is your repo", Status: NewOKStatus(), Data: rep})
 }
