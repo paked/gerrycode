@@ -16,6 +16,14 @@ type Repository struct {
 	Name string        `bson:"name" json:"name"`
 }
 
+func (rep Repository) BID() bson.ObjectId {
+	return rep.ID
+}
+
+func (rep Repository) C() string {
+	return "repositories"
+}
+
 // NewRepository creates a new Repository link.
 // 		POST /api/repo/{host}/{user}/{name}?access_token=xxx
 func NewRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {

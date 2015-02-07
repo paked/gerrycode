@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
+	"github.com/paked/models"
 	"gopkg.in/mgo.v2/bson"
 	"net/http"
 )
@@ -37,26 +38,20 @@ func NewReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 		return
 	}
 
-	c := server.Collection("repositories")
-
 	var rep Repository
-	if c.Find(bson.M{"host": host, "user": user, "name": name}).One(&rep); rep == (Repository{}) {
+	if err := models.Restore(&rep, bson.M{"host": host, "user": user, "name": name}); err != nil {
 		e.Encode(Response{Message: "A repo with that URL doesn't exist :/", Status: NewFailedStatus()})
 		return
 	}
 
-	c = server.Collection("users")
-
 	var u User
-	if c.Find(bson.M{"_id": bson.ObjectIdHex(t.Claims["User"].(string))}).One(&u); u == (User{}) {
+	if err := models.RestoreByID(&u, bson.ObjectIdHex(t.Claims["User"].(string))); err != nil {
 		e.Encode(Response{Message: "A user with that id doesnt exist!", Status: NewFailedStatus()})
 		return
 	}
 
-	c = server.Collection("reviews")
-
 	rev := Review{ID: bson.NewObjectId(), Content: review, From: u.ID, Repository: rep.ID}
-	if err := c.Insert(rev); err != nil {
+	if err := models.Persist(rev); err != nil {
 		e.Encode(Response{Message: "Could not insert that review!", Status: NewServerErrorStatus()})
 		return
 	}
