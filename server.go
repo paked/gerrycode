@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
-	"gopkg.in/mgo.v2"
 	"net/http"
 )
 
@@ -15,38 +14,15 @@ var (
 )
 
 // Server represents an instance of the go-github-review application.
-type Server struct {
-	conn *mgo.Session // A connection to a mongodb database
-}
+type Server struct{}
 
 // NewServer initializes a go-github-review server and then returns a pointer to it
 func NewServer() *Server {
 	s := &Server{}
 
-	err := s.ConnectToDatabase("localhost")
-	if err != nil {
-		panic(err)
-	}
-
 	s.InitRouting()
 
 	return s
-}
-
-// ConnectToDatabase connects to a mongodb database.
-func (s *Server) ConnectToDatabase(host string) error {
-	var err error
-	s.conn, err = mgo.Dial(host)
-	return err
-}
-
-// CloseConnectionDatabase closes the database connection.
-func (s *Server) CloseConnectionToDatabase() {
-	s.conn.Close()
-}
-
-func (s *Server) Collection(name string) *mgo.Collection {
-	return s.conn.DB(*db).C(name)
 }
 
 // InitRouting creates all the necessary routes for go-github-review.
