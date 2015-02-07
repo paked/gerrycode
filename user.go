@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
+	"github.com/paked/models"
 	"gopkg.in/mgo.v2/bson"
 	"net/http"
 	"regexp"
@@ -40,12 +41,12 @@ func (u User) C() string {
 
 func (u User) WriteReview(c string, id bson.ObjectId) (Review, error) {
 	rev := Review{ID: bson.NewObjectId(), From: u.ID, Repository: id, Content: c}
-	return rev, PersistModel(&rev)
+	return rev, models.Persist(&rev)
 }
 
 func LoginUser(username string, password string) (bool, User, error) {
 	u := User{}
-	if err := RestoreModel(&u, bson.M{"username": username, "password": password}); err != nil {
+	if err := models.Restore(&u, bson.M{"username": username, "password": password}); err != nil {
 		return false, u, err
 	}
 
@@ -71,13 +72,13 @@ func NewUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var u User
-	if err := RestoreModel(&u, bson.M{"username": username}); err == nil {
+	if err := models.Restore(&u, bson.M{"username": username}); err == nil {
 		e.Encode(Response{Message: "That user already exists!", Status: NewFailedStatus(), Data: u})
 		return
 	}
 
 	u = User{ID: bson.NewObjectId(), Username: username, Email: email, PasswordHash: password}
-	if err := PersistModel(u); err != nil {
+	if err := models.Persist(u); err != nil {
 		e.Encode(Response{Message: "Could not submit that user", Status: NewServerErrorStatus()})
 		return
 	}
@@ -92,7 +93,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	e := json.NewEncoder(w)
 
 	var u User
-	if err := RestoreModel(&u, bson.M{"username": vars["username"]}); err != nil {
+	if err := models.Restore(&u, bson.M{"username": vars["username"]}); err != nil {
 		e.Encode(Response{Message: "That user does not exist", Status: NewFailedStatus()})
 		return
 	}
@@ -146,7 +147,7 @@ func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token)
 	}
 
 	var u User
-	if err := RestoreModelByID(&u, bson.ObjectIdHex(id)); err != nil {
+	if err := models.RestoreByID(&u, bson.ObjectIdHex(id)); err != nil {
 		e.Encode(Response{Message: "Could not find that user!", Status: NewFailedStatus()})
 		return
 	}

@@ -8,6 +8,8 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+
+	"github.com/paked/models"
 )
 
 var (
@@ -26,6 +28,7 @@ func init() {
 }
 
 func main() {
+	models.Init("localhost", *db)
 	server = NewServer()
 
 	fmt.Println("Loading http server on :8080...")
