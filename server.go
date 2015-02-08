@@ -51,6 +51,13 @@ func (s *Server) InitRouting() {
 	http.Handle("/", r)
 }
 
+// Run runs the http server.
+func (s Server) Run(host, port string) error {
+	address := fmt.Sprint(host, ":", port)
+	fmt.Println("Starting server on ", address)
+	return http.ListenAndServe(address, nil)
+}
+
 // headerify adds JSON headers onto a request.
 func (s Server) headers(fn http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
