@@ -13,6 +13,7 @@ test:
 	- go test -v
 
 build:
+	- rm go-repo-review
 	- go build
 
 run:
