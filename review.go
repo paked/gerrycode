@@ -27,7 +27,7 @@ func (rev Review) BID() bson.ObjectId {
 }
 
 // NewReviewHandler creates a new Review on a Repository.
-// 		POST /api/repo/{repository}/review?text=This+sucks&rating=2&access_token=xxx
+// 		POST /api/repo/{repository}/review?review=This+sucks&rating=2&access_token=xxx
 func NewReviewHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	vars := mux.Vars(r)
 	host, user, name, review := vars["host"], vars["user"], vars["name"], r.FormValue("review")
