@@ -23,7 +23,7 @@ _testmain.go
 *.test
 *.prof
 
-go-github-review
+go-repo-review
 
 *.rsa*
 
