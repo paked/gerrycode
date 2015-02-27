@@ -2,13 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"net/http"
+	"regexp"
+	"time"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/paked/models"
 	"gopkg.in/mgo.v2/bson"
-	"net/http"
-	"regexp"
-	"time"
 )
 
 const (

@@ -2,11 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/paked/models"
 	"gopkg.in/mgo.v2/bson"
-	"net/http"
 )
 
 // Repository is the representation of a git project on Rr

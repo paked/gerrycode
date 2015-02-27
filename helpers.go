@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"io/ioutil"
 	"os"
 	"regexp"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 func generateKeys() {
