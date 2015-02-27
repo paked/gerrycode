@@ -1,0 +1,40 @@
+.header {
+	background-color: #030303;
+	color: white;
+	padding-top: .5vw;
+	/*padding-bottom: 1vw;*/
+
+	margin-bottom: 10%;
+}
+
+.header > ul li{
+	display: inline!important;
+	list-style-type: none;
+}
+
+.header li {
+	margin-right: 6vw
+}
+
+.header li:first-child {
+	margin-left: 2vw;
+}
+
+.header li > * {
+	display: inline;
+}
+
+.projects {
+	list-style-type: none;
+}
+
+.projects > li {
+	background-color: #69CC4E;
+	padding: .5vw;
+	font-weight: lighter;
+	border-radius: .1vw;
+}
+
+.projects > li > span {
+	float: right;
+}
