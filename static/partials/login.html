@@ -1,0 +1,11 @@
+<div class="row">
+	<div class="offset-by-three six columns">
+		<span>Did you mean to <a ng-href="#/{{other()}}">{{other()}}</a>?</span>
+		<span ng-if="error != ''">{{error}}</span>
+		<label>Username <input type="text" class="u-full-width" ng-model="username"></label>
+		<label ng-if="method == 'register'">Email <input type="email" class="u-full-width" ng-model="email"></label>
+		<label>Password <input type="password" class="u-full-width" ng-model="password"></label>
+
+		<button class="button-primary" ng-click="go()">{{method}}!</button>
+	</div>
+</div>
