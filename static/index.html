@@ -36,6 +36,16 @@
 				<li><a href="#/explore">Explore</a></li>
 				<li><a href="#/make">Make</a></li>
 			</ul>
+			<div class="u-pull-right">
+				<h3>  </h3> <!--- hack out of the wazoo -->
+				<ul ng-if="user">
+					<li>{{user.username}}</li>
+				</ul>
+				<ul ng-if="!loggedIn">
+					<li><a href="#/login">Login</a></li>
+					<li><a href="#/register" title="">Register</a></li>
+				</ul>
+			</div>			
 
 		</header>
 

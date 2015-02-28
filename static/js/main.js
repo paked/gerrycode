@@ -72,8 +72,25 @@ app.controller('AuthCtrl', function($scope, $routeParams, $http, $location) {
 	}
 })
 
-app.controller('HeaderCtrl', function($scope, $location) {
-	if (token == undefined) {
+app.controller('HeaderCtrl', function($scope, $location, $http) {
+	function checkAuth() {
 		$location.path("/login");
+		$scope.loggedIn = false;
 	}
+
+	$scope.loggedIn = true;
+	if (token === undefined || token == "undefined") {
+		checkAuth();
+		return
+	}
+
+	$http.get('/api/user?access_token=' + token).
+		success(function(data) {
+			if (data.status.error) {
+				checkAuth();
+				return
+			}
+
+			$scope.user = data.data;
+		});
 });
