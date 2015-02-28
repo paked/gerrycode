@@ -40,6 +40,7 @@ app.controller('MainCtrl', function($scope) {
 
 app.controller('AuthCtrl', function($scope, $routeParams, $http) {
 	$scope.method = $routeParams["method"]
+	$scope.email = ""
 
 	$scope.other = function() {
 		return $scope.method == "login" ? "register" : "login"
