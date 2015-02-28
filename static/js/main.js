@@ -51,7 +51,8 @@ app.controller('AuthCtrl', function($scope, $routeParams, $http) {
 		$http.post(url).
 			success(function(data) {
 				if (data.status.error) {
-					$scope.error = data.status.message;
+					$scope.error = data.message;
+					return
 				}
 
 				localStorage["token"] = data.data.token;
