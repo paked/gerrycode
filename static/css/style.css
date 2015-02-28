@@ -1,35 +1,36 @@
 .header {
 	background-color: #030303;
 	color: white;
-	padding-top: .25vw;
 	padding-bottom: 1vw;
+	padding-top: 1vw;
 
-	margin-bottom: 10%;
+	margin-bottom: 5%;
 }
-.header > * {
-	margin-bottom: 0;
+
+.header > .title {
+	margin-left: 2vw;
+	margin-right: 6vw;
 }
-.header > ul li{
+
+.header h3 {
+	display: inline;
+}
+
+.header li {
+	display: inline;
+	margin-right: 3vw;
+}
+
+.header ul {
 	display: inline;
 	list-style-type: none;
 }
 
-.header > ul a {
+.header a {
 	text-decoration: none;
 	color: inherit;
 }
 
-.header li {
-	margin-right: 6vw
-}
-
-.header li:first-child {
-	margin-left: 2vw;
-}
-
-.header li > * {
-	display: inline;
-}
 
 .projects {
 	list-style-type: none;
