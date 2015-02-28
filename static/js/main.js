@@ -13,6 +13,9 @@ app.config(['$routeProvider',
 			when('/explore', {
 				templateUrl: '/partials/explore.html'
 			}).
+			when('/make', {
+				templateUrl: '/partials/make.html'
+			}).
 			otherwise({
 				redirectTo: '/'
 			});
