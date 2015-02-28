@@ -31,7 +31,7 @@ func (s *Server) InitRouting() {
 	r := mux.NewRouter()
 	api := r.PathPrefix("/api").Subrouter()
 
-	api.HandleFunc("/user/create", s.headers(NewUserHandler)).Methods("POST")
+	api.HandleFunc("/user/register", s.headers(NewUserHandler)).Methods("POST")
 
 	api.HandleFunc("/user/login", s.headers(LoginUserHandler)).Methods("POST")
 

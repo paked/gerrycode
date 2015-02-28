@@ -54,7 +54,7 @@ func LoginUser(username string, password string) (User, error) {
 }
 
 // NewUserHandler creates a new user.
-// 		POST /api/user/create?username=paked&pasword=pw
+// 		POST /api/user/register?username=paked&pasword=pw
 func NewUserHandler(w http.ResponseWriter, r *http.Request) {
 	username := usernameAndPasswordRegex.FindString(r.FormValue("username"))
 	email := emailRegex.FindString(r.FormValue("email"))
