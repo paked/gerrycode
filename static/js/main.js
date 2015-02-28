@@ -38,7 +38,7 @@ app.controller('MainCtrl', function($scope) {
 	$scope.message = "PHONETAB EAT PHONETAB";
 });
 
-app.controller('AuthCtrl', function($scope, $routeParams, $http) {
+app.controller('AuthCtrl', function($scope, $routeParams, $http, $location) {
 	$scope.method = $routeParams["method"]
 	$scope.email = ""
 
@@ -51,13 +51,20 @@ app.controller('AuthCtrl', function($scope, $routeParams, $http) {
 		console.log(url);
 		$http.post(url).
 			success(function(data) {
+				console.log(data)
 				if (data.status.error) {
 					$scope.error = data.message;
 					return
 				}
+				
+				if (data.data == undefined) {
+					$location.path('/login')
+					return
+				}
 
-				localStorage["token"] = data.data.token;
+				localStorage["token"] = data.data;
 				token = localStorage["token"];
+				$location.path("/")
 			}).
 			error(function(data) {
 				console.log(data);
