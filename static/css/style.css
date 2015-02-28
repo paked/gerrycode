@@ -1,14 +1,16 @@
 .header {
 	background-color: #030303;
 	color: white;
-	padding-top: .5vw;
-	/*padding-bottom: 1vw;*/
+	padding-top: .25vw;
+	padding-bottom: 1vw;
 
 	margin-bottom: 10%;
 }
-
+.header > * {
+	margin-bottom: 0;
+}
 .header > ul li{
-	display: inline!important;
+	display: inline;
 	list-style-type: none;
 }
 
