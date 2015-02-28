@@ -46,3 +46,8 @@
 .projects > li > span {
 	float: right;
 }
+
+.error {
+	color: red;
+	font-weight: bold
+}
