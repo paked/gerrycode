@@ -5,11 +5,13 @@ import (
 	"net/http"
 	"regexp"
 	"time"
+	"errors"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/paked/models"
 	"gopkg.in/mgo.v2/bson"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -26,9 +28,8 @@ var (
 type User struct {
 	ID           bson.ObjectId `bson:"_id" json:"_id"`
 	Username     string        `bson:"username" json:"username"`
-	PasswordHash string        `bson:"password_hash" json:"-"`
+	PasswordHash []byte        `bson:"password_hash" json:"-"`
 	Email        string        `bson:"email" json:"email"`
-	PasswordSalt string        `bson:"password_salt" json:"-"`
 }
 
 func (u User) BID() bson.ObjectId {
@@ -46,8 +47,12 @@ func (u User) WriteReview(c string, id bson.ObjectId) (Review, error) {
 
 func LoginUser(username string, password string) (User, error) {
 	u := User{}
-	if err := models.Restore(&u, bson.M{"username": username, "password_hash": password}); err != nil {
+	if err := models.Restore(&u, bson.M{"username": username}); err != nil {
 		return u, err
+	}
+
+	if err := bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(password)); err != nil {
+		return u, errors.New("Those passwords don't match")
 	}
 
 	return u, nil
@@ -73,7 +78,13 @@ func NewUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u = User{ID: bson.NewObjectId(), Username: username, Email: email, PasswordHash: password}
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	if err != nil {
+		e.Encode(Response{Message: "Unable to hash your password :/", Status: NewFailedStatus()})
+		return
+	}
+
+	u = User{ID: bson.NewObjectId(), Username: username, Email: email, PasswordHash: passwordHash}
 	if err := models.Persist(u); err != nil {
 		e.Encode(Response{Message: "Could not submit that user", Status: NewServerErrorStatus()})
 		return
@@ -111,7 +122,6 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	u, err := LoginUser(username, password)
 
 	if err != nil {
-		// fmt.Println(err, res, u, username, password)
 		e.Encode(Response{Message: "Could not find your user :)", Status: NewFailedStatus()})
 		return
 	}
