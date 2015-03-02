@@ -113,7 +113,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	username := usernameAndPasswordRegex.FindString(r.FormValue("username"))
 	password := usernameAndPasswordRegex.FindString(r.FormValue("password"))
-	
+
 	e := json.NewEncoder(w)
 
 	if username == "" || password == "" {
@@ -132,7 +132,7 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	t.Claims["AccessToken"] = "1"
 	t.Claims["User"] = u.ID
-	t.Claims["Expires"] = time.Now().Add(time.Minute * 15).Unix()
+	t.Claims["exp"] = time.Now().Add(time.Hour * 12).Unix()
 
 	tokenString, err := t.SignedString(signKey)
 
