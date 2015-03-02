@@ -111,7 +111,9 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 // LoginUserHandler checks the provided login credentials and if valid return an access_token.
 //		POST /api/user/login?username=paked&password=pw
 func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
-	username, password := r.FormValue("username"), r.FormValue("password")
+	username := usernameAndPasswordRegex.FindString(r.FormValue("username"))
+	password := usernameAndPasswordRegex.FindString(r.FormValue("password"))
+	
 	e := json.NewEncoder(w)
 
 	if username == "" || password == "" {
