@@ -30,18 +30,6 @@ func generateKeys() {
 }
 
 func createUserRegex() {
-	var err error
-	usernameAndPasswordRegex, err = regexp.Compile(usernameAndPasswordRegexString)
-
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	emailRegex, err = regexp.Compile(emailRegexString)
-
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	usernameAndPasswordRegex = regexp.MustCompile(usernameAndPasswordRegexString)
+	emailRegex = regexp.MustCompile(emailRegexString)
 }
