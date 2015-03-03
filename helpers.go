@@ -30,6 +30,6 @@ func generateKeys() {
 }
 
 func createUserRegex() {
-	usernameAndPasswordRegex = regexp.MustCompile(usernameAndPasswordRegexString)
-	emailRegex = regexp.MustCompile(emailRegexString)
+	credentialsRegex = regexp.MustCompile(credentialsRaw)
+	emailRegex = regexp.MustCompile(emailRaw)
 }
