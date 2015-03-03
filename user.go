@@ -2,26 +2,26 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"regexp"
 	"time"
-	"errors"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/paked/models"
-	"gopkg.in/mgo.v2/bson"
 	"golang.org/x/crypto/bcrypt"
+	"gopkg.in/mgo.v2/bson"
 )
 
 const (
-	usernameAndPasswordRegexString = `^[a-zA-Z]\w*[a-zA-Z]$` // 1st and last characters must be letters.
-	emailRegexString               = `^.*\@.*$`              // As long as it has an '@' symbol in it I don't care.
+	credentialsRaw = `^[a-zA-Z]\w*[a-zA-Z]$` // 1st and last characters must be letters.
+	emailRaw       = `^.*\@.*$`              // As long as it has an '@' symbol in it I don't care.
 )
 
 var (
-	usernameAndPasswordRegex *regexp.Regexp
-	emailRegex               *regexp.Regexp
+	credentialsRegex *regexp.Regexp
+	emailRegex       *regexp.Regexp
 )
 
 // User is someone who has registered on the site.
@@ -61,9 +61,9 @@ func LoginUser(username string, password string) (User, error) {
 // NewUserHandler creates a new user.
 // 		POST /api/user/register?username=paked&pasword=pw
 func NewUserHandler(w http.ResponseWriter, r *http.Request) {
-	username := usernameAndPasswordRegex.FindString(r.FormValue("username"))
+	username := credentialsRegex.FindString(r.FormValue("username"))
 	email := emailRegex.FindString(r.FormValue("email"))
-	password := usernameAndPasswordRegex.FindString(r.FormValue("password"))
+	password := credentialsRegex.FindString(r.FormValue("password"))
 
 	e := json.NewEncoder(w)
 
@@ -111,8 +111,8 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 // LoginUserHandler checks the provided login credentials and if valid return an access_token.
 //		POST /api/user/login?username=paked&password=pw
 func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
-	username := usernameAndPasswordRegex.FindString(r.FormValue("username"))
-	password := usernameAndPasswordRegex.FindString(r.FormValue("password"))
+	username := credentialsRegex.FindString(r.FormValue("username"))
+	password := credentialsRegex.FindString(r.FormValue("password"))
 
 	e := json.NewEncoder(w)
 
