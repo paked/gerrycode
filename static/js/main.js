@@ -50,6 +50,7 @@ app.service('User', function($rootScope, $http, $location) {
 			return service.token != undefined && service.token != "" && service.token != "undefined"
 		},
 		auth: function(method, username, password, email, error) {
+			console.log(username, password, email);
 			error = error || function(m) {console.log(m)}
 			var url = '/api/user/' + method + "?username=" + username + "&password=" + password + "&email=" + email;
 			console.log(url);
@@ -61,7 +62,8 @@ app.service('User', function($rootScope, $http, $location) {
 						return	
 					}
 					
-					if (data.data == undefined) {
+					if (data.data.username !== undefined) {
+						error("Login with your fresh account!")
 						$location.path('/login')
 						return
 					}
@@ -111,13 +113,32 @@ app.controller('AuthCtrl', function($scope, $routeParams, $http, $location, User
 	}
 
 	$scope.method = $routeParams["method"]
-	$scope.email = ""
+	$scope.email = " "
 
 	$scope.other = function() {
 		return $scope.method == "login" ? "register" : "login"
 	}
 
 	$scope.go = function() {
+		console.log($scope.email)
+		username = $scope.username;
+		password = $scope.password;
+		email = $scope.email;
+
+		if (username == "" || username == undefined) {
+			$scope.setError("You are *going* to need a username, trust me")	
+			return
+		}
+
+		if (password == "" || password == undefined) {
+			$scope.setError("You need a password to login!")
+			return
+		}
+
+		if ((email == "" || email == undefined) && $scope.method == "register") {
+			$scope.setError("You need an email!")
+			return
+		}
 		User.auth($scope.method, $scope.username, $scope.password, $scope.email, $scope.setError);
 	}
 
