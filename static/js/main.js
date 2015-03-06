@@ -104,6 +104,11 @@ app.controller('MainCtrl', function($scope, User) {
 });
 
 app.controller('AuthCtrl', function($scope, $routeParams, $http, $location, User) {
+	if(User.loggedIn()) {
+		$location.path("#/")
+		return
+	}
+
 	$scope.method = $routeParams["method"]
 	$scope.email = ""
 
