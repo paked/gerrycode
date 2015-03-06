@@ -27,5 +27,8 @@ go-repo-review
 
 *.rsa*
 
+# vim
+*.swp
+
 # #justbowerthings
 static/lib/*
