@@ -1,5 +1,4 @@
 app = angular.module('revco', ["ngRoute"]);
-
 token = localStorage["token"]
 
 app.config(['$routeProvider',
@@ -34,11 +33,76 @@ app.config(['$routeProvider',
 
 	}]);
 
-app.controller('MainCtrl', function($scope) {
-	$scope.message = "PHONETAB EAT PHONETAB";
+app.service('User', function($rootScope, $http, $location) {
+	var service = {
+		username: undefined, 
+		token: localStorage["token"],
+		changeUsername: function(username) {
+			service.username = username;
+			$rootScope.$broadcast('user.update')
+		},
+		changeToken: function(token) {
+			service.token = token;
+			$rootScope.$broadcast('user.update')
+		},
+		loggedIn: function() {
+			return service.token == undefined || service.token == "" || service.token == "undefined"
+		},
+		auth: function(method, username, password, email) {
+			var url = '/api/user/' + method + "?username=" + username + "&password=" + password + "&email=" + email;
+			console.log(url);
+			$http.post(url).
+				success(function(data) {
+					console.log(data)
+					if (data.status.error) {
+					 	return data.message;
+						
+					}
+					
+					if (data.data == undefined) {
+						$location.path('/login')
+						return
+					}
+
+					localStorage["token"] = data.data;
+					service.changeToken(data.data);
+					$location.path("/");
+					
+					service.info();
+				}).
+				error(function(data) {
+					console.log(data);
+				})
+		},
+		info: function() {
+			$http.get('/api/user?access_token=' + service.token).
+				success(function(data) {
+					if (data.status.error) {
+						$location.path("/login");
+						return 
+					}
+
+					service.changeUsername(data.data.username)
+				}).
+				error(function(data) {console.log("Unable to get user :/")});
+		}
+	};
+
+	return service;
+})
+
+app.controller('MainCtrl', function($scope, User) {
+	$scope.$on('user.update', function(event) {
+		$scope.message = User.username;
+	});
+	$scope.message = User.username;
+
+	$scope.change = function() {
+		User.changeUsername("boo I liked that username!")
+	}
 });
 
-app.controller('AuthCtrl', function($scope, $routeParams, $http, $location) {
+app.controller('AuthCtrl', function($scope, $routeParams, $http, $location, User) {
 	$scope.method = $routeParams["method"]
 	$scope.email = ""
 
@@ -47,50 +111,19 @@ app.controller('AuthCtrl', function($scope, $routeParams, $http, $location) {
 	}
 
 	$scope.go = function() {
-		var url = '/api/user/' + $scope.method + "?username=" + $scope.username + "&password=" + $scope.password + "&email=" + $scope.email;
-		console.log(url);
-		$http.post(url).
-			success(function(data) {
-				console.log(data)
-				if (data.status.error) {
-					$scope.error = data.message;
-					return
-				}
-				
-				if (data.data == undefined) {
-					$location.path('/login')
-					return
-				}
-
-				localStorage["token"] = data.data;
-				token = localStorage["token"];
-				$location.path("/")
-			}).
-			error(function(data) {
-				console.log(data);
-			})
+		User.auth($scope.method, $scope.username, $scope.password, $scope.email)
 	}
 })
 
-app.controller('HeaderCtrl', function($scope, $location, $http) {
-	function checkAuth() {
+app.controller('HeaderCtrl', function($scope, $location, $http, User) {
+	$scope.$on('user.update', function(event) {
+		$scope.user = User;
+	});
+
+	if(!User.loggedIn()) {
 		$location.path("/login");
-		$scope.loggedIn = false;
-	}
-
-	$scope.loggedIn = true;
-	if (token === undefined || token == "undefined") {
-		checkAuth();
 		return
-	}
+	};
 
-	$http.get('/api/user?access_token=' + token).
-		success(function(data) {
-			if (data.status.error) {
-				checkAuth();
-				return
-			}
-
-			$scope.user = data.data;
-		});
+	$scope.user = User;
 });
