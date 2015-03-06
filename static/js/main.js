@@ -49,15 +49,16 @@ app.service('User', function($rootScope, $http, $location) {
 			console.log(service.token)
 			return service.token != undefined && service.token != "" && service.token != "undefined"
 		},
-		auth: function(method, username, password, email) {
+		auth: function(method, username, password, email, error) {
+			error = error || function(m) {console.log(m)}
 			var url = '/api/user/' + method + "?username=" + username + "&password=" + password + "&email=" + email;
 			console.log(url);
 			$http.post(url).
 				success(function(data) {
 					console.log(data)
 					if (data.status.error) {
-					 	return data.message;
-						
+					 	error(data.status.message)
+						return	
 					}
 					
 					if (data.data == undefined) {
@@ -117,7 +118,11 @@ app.controller('AuthCtrl', function($scope, $routeParams, $http, $location, User
 	}
 
 	$scope.go = function() {
-		User.auth($scope.method, $scope.username, $scope.password, $scope.email)
+		User.auth($scope.method, $scope.username, $scope.password, $scope.email, $scope.setError);
+	}
+
+	$scope.setError = function(error) {
+		$scope.error = error;
 	}
 })
 
