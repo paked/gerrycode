@@ -46,7 +46,8 @@ app.service('User', function($rootScope, $http, $location) {
 			$rootScope.$broadcast('user.update')
 		},
 		loggedIn: function() {
-			return service.token == undefined || service.token == "" || service.token == "undefined"
+			console.log(service.token)
+			return service.token != undefined && service.token != "" && service.token != "undefined"
 		},
 		auth: function(method, username, password, email) {
 			var url = '/api/user/' + method + "?username=" + username + "&password=" + password + "&email=" + email;
@@ -124,6 +125,8 @@ app.controller('HeaderCtrl', function($scope, $location, $http, User) {
 		$location.path("/login");
 		return
 	};
+
+	User.info()
 
 	$scope.user = User;
 });
