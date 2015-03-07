@@ -14,7 +14,8 @@ app.config(['$routeProvider',
 				templateUrl: '/partials/explore.html'
 			}).
 			when('/make', {
-				templateUrl: '/partials/make.html'
+				templateUrl: '/partials/make.html',
+				controller: 'MakeCtrl'
 			}).
 			when('/auth/:method', {
 				templateUrl: '/partials/login.html',
@@ -87,7 +88,7 @@ app.service('User', function($rootScope, $http, $location) {
 						$location.path("/login");
 						return; 
 					}
-
+					service.changeToken(localStorage.token);
 					service.changeUsername(data.data.username);
 				}).
 				error(function(data) {console.log("Unable to get user :/");});
@@ -146,6 +147,38 @@ app.controller('AuthCtrl', function($scope, $routeParams, $http, $location, User
 
 	$scope.setError = function(error) {
 		$scope.error = error;
+	};
+});
+
+app.controller('MakeCtrl', function($scope, $http, User) {
+	$scope.make = function() {
+		name = $scope.name;
+		url = $scope.url;
+
+		if(!name) {
+			return;
+		}
+
+		if(!url) {
+			return;
+		}
+		
+		var urlParts = url.split('/');
+		var urlHost = urlParts[0];
+		var urlUser = urlParts[1];
+		var urlProject = urlParts[2];
+		
+		var url = '/api/repo/' + urlHost + '/' + urlUser + '/' + urlProject + '?access_token=' + User.token;
+		console.log(url);
+		$http.post(url)
+			.success(function(data) {
+				if(data.status.error) {
+					console.log(data.status);
+				}
+			})
+			.error(function() {
+			
+			});
 	};
 });
 

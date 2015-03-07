@@ -6,9 +6,9 @@
 	
 <div class="row">
 	<div class="ten columns offset-by-one">
-		<label>Name: <input type="text" name="name" placeholder="octo-nemesis" class="u-full-width"></label>
-		<label>URL: <input type="text" name="url" placeholder="github.com/paked/go-repo-review" class="u-full-width"></label>
+		<label>Name: <input ng-model="name" type="text" name="name" placeholder="octo-nemesis" class="u-full-width"></label>
+		<label>URL: <input ng-model="url" type="text" name="url" placeholder="github.com/paked/go-repo-review" class="u-full-width"></label>
 
-		<button class="button-primary">Go</button>
+		<button ng-click="make()" class="button-primary">Go</button>
 	</div>
 </div>
