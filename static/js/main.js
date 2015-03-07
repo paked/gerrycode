@@ -35,39 +35,39 @@ app.config(['$routeProvider',
 app.service('User', function($rootScope, $http, $location) {
 	var service = {
 		username: undefined, 
-		token: localStorage["token"],
+		token: localStorage.token,
 		changeUsername: function(username) {
 			service.username = username;
-			$rootScope.$broadcast('user.update')
+			$rootScope.$broadcast('user.update');
 		},
 		changeToken: function(token) {
 			service.token = token;
-			$rootScope.$broadcast('user.update')
+			$rootScope.$broadcast('user.update');
 		},
 		loggedIn: function() {
-			console.log(service.token)
-			return service.token != undefined && service.token != "" && service.token != "undefined"
+			console.log(service.token);
+			return service.token !== undefined && service.token != "undefined";
 		},
 		auth: function(method, username, password, email, error) {
 			console.log(username, password, email);
-			error = error || function(m) {console.log(m)}
+			error = error || function(m) {console.log(m);};
 			var url = '/api/user/' + method + "?username=" + username + "&password=" + password + "&email=" + email;
 			console.log(url);
 			$http.post(url).
 				success(function(data) {
-					console.log(data)
+					console.log(data);
 					if (data.status.error) {
-					 	error(data.status.message)
-						return	
+					 	error(data.status.message);
+						return;	
 					}
 					
 					if (data.data.username !== undefined) {
-						error("Login with your fresh account!")
-						$location.path('/login')
-						return
+						error("Login with your fresh account!");
+						$location.path('/login');
+						return;
 					}
 
-					localStorage["token"] = data.data;
+					localStorage.token = data.data;
 					service.changeToken(data.data);
 					$location.path("/");
 					
@@ -75,27 +75,27 @@ app.service('User', function($rootScope, $http, $location) {
 				}).
 				error(function(data) {
 					console.log(data);
-				})
+				});
 		},
 		info: function() {
-			console.log("in info", service.token)
+			console.log("in info", service.token);
 			$http.get('/api/user?access_token=' + service.token).
 				success(function(data) {
 					console.log(data);
 					service.token = undefined;
 					if (data.status.error) {
 						$location.path("/login");
-						return 
+						return; 
 					}
 
-					service.changeUsername(data.data.username)
+					service.changeUsername(data.data.username);
 				}).
-				error(function(data) {console.log("Unable to get user :/")});
+				error(function(data) {console.log("Unable to get user :/");});
 		}
 	};
 
 	return service;
-})
+});
 
 app.controller('MainCtrl', function($scope, User) {
 	$scope.$on('user.update', function(event) {
@@ -104,50 +104,50 @@ app.controller('MainCtrl', function($scope, User) {
 	$scope.message = User.username;
 
 	$scope.change = function() {
-		User.changeUsername("boo I liked that username!")
-	}
+		User.changeUsername("boo I liked that username!");
+	};
 });
 
 app.controller('AuthCtrl', function($scope, $routeParams, $http, $location, User) {
 	if(User.loggedIn()) {
-		$location.path("#/")
-		return
+		$location.path("#/");
+		return;
 	}
 
-	$scope.method = $routeParams["method"]
-	$scope.email = " "
+	$scope.method = $routeParams.method;
+	$scope.email = " ";
 
 	$scope.other = function() {
-		return $scope.method == "login" ? "register" : "login"
-	}
+		return $scope.method == "login" ? "register" : "login";
+	};
 
 	$scope.go = function() {
-		console.log($scope.email)
+		console.log($scope.email);
 		username = $scope.username;
 		password = $scope.password;
 		email = $scope.email;
 
-		if (username == "" || username == undefined) {
-			$scope.setError("You are *going* to need a username, trust me")	
-			return
+		if (!username) {
+			$scope.setError("You are *going* to need a username, trust me");
+			return;
 		}
 
-		if (password == "" || password == undefined) {
-			$scope.setError("You need a password to login!")
-			return
+		if (!password) {
+			$scope.setError("You need a password to login!");
+			return;
 		}
 
-		if ((email == "" || email == undefined) && $scope.method == "register") {
-			$scope.setError("You need an email!")
-			return
+		if (!email && $scope.method == "register") {
+			$scope.setError("You need an email!");
+			return;
 		}
 		User.auth($scope.method, $scope.username, $scope.password, $scope.email, $scope.setError);
-	}
+	};
 
 	$scope.setError = function(error) {
 		$scope.error = error;
-	}
-})
+	};
+});
 
 app.controller('HeaderCtrl', function($scope, $location, $http, User) {
 	$scope.$on('user.update', function(event) {
@@ -156,10 +156,10 @@ app.controller('HeaderCtrl', function($scope, $location, $http, User) {
 
 	if(!User.loggedIn()) {
 		$location.path("/login");
-		return
-	};
+		return;
+	}
 
-	User.info()
+	User.info();
 
 	$scope.user = User;
 });
