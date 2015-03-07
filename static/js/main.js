@@ -7,6 +7,10 @@ app.config(['$routeProvider',
 				templateUrl: '/partials/home.html',
 				controller: 'MainCtrl'
 			}).
+			when('/me/view', {
+				templateUrl: 'partials/my_projects.html',
+				controller: 'MyProjectsCtrl'
+			}).
 			when('/view/:project', {
 				templateUrl: '/partials/view_project.html'
 			}).
@@ -180,6 +184,21 @@ app.controller('MakeCtrl', function($scope, $http, User) {
 			
 			});
 	};
+});
+
+app.controller('MyProjectsCtrl', function($scope, $http, User) {
+	$http.get("/api/user/repositories?access_token=" + User.token).
+		success(function(data) {
+			if (data.status.error) {
+				console.log("Error in repositories :/");
+				return;
+			}
+
+			$scope.repositories = data.data || [];
+		}).
+		error(function() {
+			console.log("Error fetching repositories!");
+		});
 });
 
 app.controller('HeaderCtrl', function($scope, $location, $http, User) {
