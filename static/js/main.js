@@ -1,5 +1,4 @@
 app = angular.module('revco', ["ngRoute"]);
-token = localStorage["token"]
 
 app.config(['$routeProvider',
 	function($routeProvider) {
@@ -79,8 +78,11 @@ app.service('User', function($rootScope, $http, $location) {
 				})
 		},
 		info: function() {
+			console.log("in info", service.token)
 			$http.get('/api/user?access_token=' + service.token).
 				success(function(data) {
+					console.log(data);
+					service.token = undefined;
 					if (data.status.error) {
 						$location.path("/login");
 						return 
