@@ -3,11 +3,11 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"github.com/dgrijalva/jwt-go"
 	"net/http"
 	"regexp"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 	"github.com/paked/models"
 	"golang.org/x/crypto/bcrypt"

@@ -41,6 +41,8 @@ func (s *Server) InitRouting() {
 
 	api.HandleFunc("/user/{username}", s.headers(GetUserHandler)).Methods("GET")
 
+	api.HandleFunc("/user/git/repositories", s.headers(s.restrict(GetUsersRepositories))).Methods("GET")
+
 	api.HandleFunc("/repo/{host}/{user}/{name}/review", s.headers(s.restrict(NewReviewHandler))).Methods("POST")
 
 	api.HandleFunc("/repo/{host}/{user}/{name}/{review}", s.headers(GetReviewHandler)).Methods("GET")
