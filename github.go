@@ -46,14 +46,14 @@ func (la LinkedAccount) C() string {
 
 func GetUsersRepositories(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	e := json.NewEncoder(w)
-	var la LinkedAccount
 
-	if err := models.Restore(&la, bson.M{"origin": bson.ObjectIdHex(t.Claims["User"].(string))}); err != nil {
-		e.Encode("Failed model!")
+	transport, err := transport(bson.ObjectIdHex(t.Claims["User"].(string)))
+	if err != nil {
+		e.Encode(Response{Message: "Error creating transport", Status: NewFailedStatus()})
 		return
 	}
 
-	client := github.NewClient(nil)
+	client := github.NewClient(transport.Client())
 
 	repos, _, err := client.Repositories.List("paked", nil)
 
@@ -65,20 +65,49 @@ func GetUsersRepositories(w http.ResponseWriter, r *http.Request, t *jwt.Token) 
 }
 
 func PostLinkUserAccount(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
-	//	id, ok := mux.Vars(r)["user"]
 	e := json.NewEncoder(w)
 
-	if false {
+	id, ok := t.Claims["User"].(string)
+	if !ok {
 		e.Encode(Response{Message: "Unable to get that id :/", Status: NewFailedStatus()})
 		return
 	}
+
 	fmt.Println(conf.ClientID)
 
-	http.Redirect(w, r, oauthConfig.AuthCodeURL("gooey"), http.StatusFound)
+	session, err := store.Get(r, "github-auth")
+	if err != nil {
+		e.Encode(Response{Message: "Unable to get that session :/", Status: NewFailedStatus()})
+		return
+	}
+	session.AddFlash(id)
+	if err := session.Save(r, w); err != nil {
+		e.Encode(Response{Message: "Unable to save that session!", Status: NewFailedStatus()})
+	}
+
+	http.Redirect(w, r, oauthConfig.AuthCodeURL(""), http.StatusFound)
 }
 
 func GetAuthedGithubAccount(w http.ResponseWriter, r *http.Request) {
 	e := json.NewEncoder(w)
+	session, err := store.Get(r, "github-auth")
+	if err != nil {
+		e.Encode(Response{Message: "Unable to get that session :/", Status: NewFailedStatus()})
+		return
+	}
+
+	flashes := session.Flashes()
+	if len(flashes) == 0 {
+		e.Encode(Response{Message: "You got something funky going on with your cookies!", Status: NewFailedStatus()})
+		return
+	}
+
+	id, ok := flashes[0].(string)
+	if !ok {
+		e.Encode(Response{Message: "Unable to get that id :/", Status: NewFailedStatus()})
+		return
+	}
+
 	t, err := firstTransport(r.FormValue("code"))
 	if err != nil {
 		e.Encode(Response{Message: "Error creating transport", Status: NewFailedStatus()})
@@ -86,7 +115,7 @@ func GetAuthedGithubAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	la := LinkedAccount{ID: bson.NewObjectId(),
-		Origin:  bson.NewObjectId(),
+		Origin:  bson.ObjectIdHex(id),
 		Service: GithubAccount,
 		Token:   t.Token.AccessToken}
 
@@ -113,7 +142,7 @@ func firstTransport(code string) (*oauth.Transport, error) {
 func transport(id bson.ObjectId) (*oauth.Transport, error) {
 	var la LinkedAccount
 
-	if err := models.RestoreByID(&la, id); err != nil {
+	if err := models.Restore(&la, bson.M{"origin": id}); err != nil {
 		return nil, err
 	}
 
