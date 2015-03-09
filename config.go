@@ -8,6 +8,8 @@ import (
 type Config struct {
 	ClientID     string `json:"client_id"`
 	ClientSecret string `json:"client_secret"`
+
+	SessionSecret string `json:"session_secret"`
 }
 
 func passConfig(location string) (Config, error) {

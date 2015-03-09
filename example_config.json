@@ -1,4 +1,5 @@
 {
 	"client_id": "GITHUB CLIENT ID HERE",
-	"client_secret": "GITHUB SECRET HERE!"
+	"client_secret": "GITHUB SECRET HERE!",
+	"session_secret": "SOMETHING VERY VERY SECRET"
 }
