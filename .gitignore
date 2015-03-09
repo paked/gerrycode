@@ -31,6 +31,6 @@ go-repo-review
 *.swp
 
 config.json
-
+*.cache
 # #justbowerthings
 static/lib/*
