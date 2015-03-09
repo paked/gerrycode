@@ -8,6 +8,7 @@ import (
 	"code.google.com/p/goauth2/oauth"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/go-github/github"
+	"github.com/paked/models"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -23,15 +24,16 @@ func fillOAuthConfig() {
 		AuthURL:      "https://github.com/login/oauth/authorize",
 		TokenURL:     "https://github.com/login/oauth/access_token",
 		RedirectURL:  "http://localhost:8080/api/oauth",
+		TokenCache:   oauth.CacheFile("auth.cache"),
 	}
 
 }
 
 type LinkedAccount struct {
-	ID       bson.ObjectId `bson:"id"`
-	Origin   bson.ObjectId `bson:"origin"`
-	Service  string        `bson:"service"`
-	Username string        `bson:"username"`
+	ID      bson.ObjectId `bson:"id"`
+	Origin  bson.ObjectId `bson:"origin"`
+	Service string        `bson:"service"`
+	Token   string        `bson:"token"`
 }
 
 func (la LinkedAccount) BID() bson.ObjectId {
@@ -44,6 +46,13 @@ func (la LinkedAccount) C() string {
 
 func GetUsersRepositories(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	e := json.NewEncoder(w)
+	var la LinkedAccount
+
+	if err := models.Restore(&la, bson.M{"origin": bson.ObjectIdHex(t.Claims["User"].(string))}); err != nil {
+		e.Encode("Failed model!")
+		return
+	}
+
 	client := github.NewClient(nil)
 
 	repos, _, err := client.Repositories.List("paked", nil)
@@ -69,14 +78,44 @@ func PostLinkUserAccount(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 }
 
 func GetAuthedGithubAccount(w http.ResponseWriter, r *http.Request) {
-	t := &oauth.Transport{Config: oauthConfig}
-	t.Exchange(r.FormValue("code"))
-	// The Transport now has a valid Token. Create an *http.Client
-	// with which we can make authenticated API requests.
+	e := json.NewEncoder(w)
+	t, err := firstTransport(r.FormValue("code"))
+	if err != nil {
+		e.Encode(Response{Message: "Error creating transport", Status: NewFailedStatus()})
+		return
+	}
+
+	la := LinkedAccount{ID: bson.NewObjectId(),
+		Origin:  bson.NewObjectId(),
+		Service: GithubAccount,
+		Token:   t.Token.AccessToken}
+
+	if err := models.Persist(la); err != nil {
+		e.Encode(Response{Message: "Unable to persist model!", Status: NewFailedStatus()})
+		return
+	}
+
 	c := t.Client()
-	fmt.Println(c)
+	fmt.Println(c, t)
 	fmt.Fprintf(w, "woo logged in!")
 	//c.Post(...)
 	// ...
 	// btw, r.FormValue("state") == "foo"
+}
+
+func firstTransport(code string) (*oauth.Transport, error) {
+	t := &oauth.Transport{Config: oauthConfig}
+	_, err := t.Exchange(code)
+
+	return t, err
+}
+
+func transport(id bson.ObjectId) (*oauth.Transport, error) {
+	var la LinkedAccount
+
+	if err := models.RestoreByID(&la, id); err != nil {
+		return nil, err
+	}
+
+	return &oauth.Transport{Token: &oauth.Token{AccessToken: la.Token}}, nil
 }
