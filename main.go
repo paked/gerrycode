@@ -8,12 +8,15 @@ import (
 	"flag"
 	"fmt"
 
+	"code.google.com/p/goauth2/oauth"
+
 	"github.com/paked/models"
 )
 
 var (
-	server *Server
-	conf   config
+	server      *Server
+	conf        Config
+	oauthConfig *oauth.Config
 
 	privateKeyPath = flag.String("private", "keys/app.rsa", "path to the private key")
 	publicKeyPath  = flag.String("public", "keys/app.rsa.pub", "path to the public key")
@@ -34,6 +37,7 @@ func init() {
 	}
 	fmt.Println(conf)
 
+	fillOAuthConfig()
 	generateKeys()
 	createUserRegex()
 }

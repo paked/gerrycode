@@ -51,6 +51,10 @@ func (s *Server) InitRouting() {
 
 	api.HandleFunc("/repo/{host}/{user}/{name}", s.headers(s.restrict(NewRepository))).Methods("POST")
 
+	api.HandleFunc("/reg", s.restrict(PostLinkUserAccount)).Methods("GET")
+
+	api.HandleFunc("/oauth", GetAuthedGithubAccount).Methods("GET")
+
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("static/")))
 
 	http.Handle("/", r)

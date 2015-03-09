@@ -5,14 +5,14 @@ import (
 	"io/ioutil"
 )
 
-type config struct {
+type Config struct {
 	ClientID     string `json:"client_id"`
 	ClientSecret string `json:"client_secret"`
 }
 
-func passConfig(location string) (config, error) {
+func passConfig(location string) (Config, error) {
 	var err error
-	var c config
+	var c Config
 
 	bytes, err := ioutil.ReadFile(location)
 	if err != nil {
