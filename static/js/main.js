@@ -158,6 +158,7 @@ app.controller('MakeCtrl', function($scope, $http, User) {
 	$scope.make = function() {
 		name = $scope.name;
 		url = $scope.url;
+		tldr = $scope.tldr;
 
 		if(!name) {
 			return;
@@ -166,22 +167,19 @@ app.controller('MakeCtrl', function($scope, $http, User) {
 		if(!url) {
 			return;
 		}
-		
-		var urlParts = url.split('/');
-		var urlHost = urlParts[0];
-		var urlUser = urlParts[1];
-		var urlProject = urlParts[2];
-		
-		var url = '/api/repo/' + urlHost + '/' + urlUser + '/' + urlProject + '?access_token=' + User.token;
-		console.log(url);
-		$http.post(url)
-			.success(function(data) {
-				if(data.status.error) {
-					console.log(data.status);
+
+		if(!tldr) {
+			return;
+		}
+
+		$http.post("/api/project/new?access_token=" + User.token + "&name=" + name + "&url=" + url + "&tldr=" + tldr).
+			success(function(data) {
+				if (data.status.error) {
+					console.log(data);
+					return;
 				}
-			})
-			.error(function() {
-			
+				console.log("done!");
+				console.log(data);
 			});
 	};
 });
