@@ -6,12 +6,13 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gorilla/mux"
 	"github.com/paked/models"
 	"gopkg.in/mgo.v2/bson"
 )
 
 type Project struct {
-	ID    bson.ObjectId `bson:"_id" json:"-"`
+	ID    bson.ObjectId `bson:"_id" json:"id"`
 	Owner bson.ObjectId `bson:"owner" json:"owner"`
 	Name  string        `bson:"name" json:"name"`
 	URL   string        `bson:"url" json:"url"`
@@ -79,6 +80,22 @@ func PostCreateProject(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	}
 
 	e.Encode(Response{Message: "Here is the project", Status: NewOKStatus(), Data: p})
+}
+
+// GetRepository retrieves a Repository.
+// 		GET /api/project/{id}
+func GetProject(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	e := json.NewEncoder(w)
+	id := vars["id"]
+
+	var project Project
+	if err := models.RestoreByID(&project, bson.ObjectIdHex(id)); err != nil {
+		e.Encode(Response{Message: "That project does not exist", Status: NewFailedStatus()})
+		return
+	}
+
+	json.NewEncoder(w).Encode(Response{Message: "Here is your project", Status: NewOKStatus(), Data: project})
 }
 
 func PostFlagForFeedback(w http.ResponseWriter, r *http.Request, t *jwt.Token) {

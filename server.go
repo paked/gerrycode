@@ -43,15 +43,9 @@ func (s *Server) InitRouting() {
 
 	api.HandleFunc("/user/git/repositories", s.headers(s.restrict(GetUsersRepositories))).Methods("GET")
 
-	api.HandleFunc("/repo/{host}/{user}/{name}/review", s.headers(s.restrict(NewReviewHandler))).Methods("POST")
-
-	api.HandleFunc("/repo/{host}/{user}/{name}/{review}", s.headers(GetReviewHandler)).Methods("GET")
-
-	api.HandleFunc("/repo/{host}/{user}/{name}", s.headers(GetRepository)).Methods("GET")
-
-	api.HandleFunc("/repo/{host}/{user}/{name}", s.headers(s.restrict(NewRepository))).Methods("POST")
-
 	api.HandleFunc("/project/new", s.headers(s.restrict(PostCreateProject))).Methods("POST")
+
+	api.HandleFunc("/project/{id}", s.headers(GetProject)).Methods("GET")
 
 	api.HandleFunc("/flag/new", s.headers(s.restrict(PostFlagForFeedback))).Methods("POST")
 

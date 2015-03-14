@@ -47,19 +47,3 @@ func NewRepository(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 
 	json.NewEncoder(w).Encode(Response{Message: "We created that new repository!", Status: NewOKStatus(), Data: rep})
 }
-
-// GetRepository retrieves a Repository.
-// 		GET /api/repo/{host}/{user}/{name}
-func GetRepository(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	host, user, name := vars["host"], vars["user"], vars["name"]
-	e := json.NewEncoder(w)
-
-	var rep Repository
-	if err := models.Restore(&rep, bson.M{"host": host, "user": user, "name": name}); err != nil {
-		e.Encode(Response{Message: "That repository does not exist", Status: NewFailedStatus()})
-		return
-	}
-
-	json.NewEncoder(w).Encode(Response{Message: "Here is your repo", Status: NewOKStatus(), Data: rep})
-}
