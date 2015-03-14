@@ -28,10 +28,10 @@ func (p Project) C() string {
 }
 
 type Flag struct {
-	ID      bson.ObjectId `bson:"_id"`
-	Project bson.ObjectId `bson:"project"`
-	Query   string        `bson:"query"`
-	Time    time.Time     `bson:"time"`
+	ID      bson.ObjectId `bson:"_id" json:"id"`
+	Project bson.ObjectId `bson:"project" json:"project"`
+	Query   string        `bson:"query" json:"query"`
+	Time    time.Time     `bson:"time" json:"time"`
 }
 
 func (f Flag) BID() bson.ObjectId {
@@ -135,4 +135,22 @@ func GetUsersProjectsHandler(w http.ResponseWriter, r *http.Request, t *jwt.Toke
 	}
 
 	e.Encode(Response{Message: "Here are your projects!", Status: NewOKStatus(), Data: projects})
+}
+
+func GetProjectsFlags(w http.ResponseWriter, r *http.Request) {
+	e := json.NewEncoder(w)
+
+	var flags []Flag
+	flag := Flag{}
+	iter, err := models.Fetch(flag.C(), bson.M{"project": bson.ObjectIdHex(mux.Vars(r)["id"])})
+	if err != nil {
+		e.Encode(Response{Message: "Something went wrong fetching flags...", Status: NewServerErrorStatus()})
+		return
+	}
+
+	for iter.Next(&flag) {
+		flags = append(flags, flag)
+	}
+
+	e.Encode(Response{Message: "Here are your flags!", Status: NewOKStatus(), Data: flags})
 }
