@@ -11,8 +11,9 @@ app.config(['$routeProvider',
 				templateUrl: 'partials/my_projects.html',
 				controller: 'MyProjectsCtrl'
 			}).
-			when('/view/:project', {
-				templateUrl: '/partials/view_project.html'
+			when('/projects/:project', {
+				templateUrl: '/partials/view_project.html',
+				controller: 'ViewProjectCtrl'
 			}).
 			when('/explore', {
 				templateUrl: '/partials/explore.html'
@@ -221,8 +222,41 @@ app.controller('ProjectCtrl', function($scope, $http, User) {
 			if (data.status.error) {
 				console.log("COuld not get projects");
 				console.log(data);
+				return;
 			}	
 
 			$scope.projects = data.data;
+		});
+});
+
+app.controller('ViewProjectCtrl', function($scope, $http, $routeParams, User) {
+	$http.get("/api/project/" + $routeParams.project).
+		success(function(data) {
+			if (data.status.error) {
+				console.log("Could not get that project....");
+				return;
+			}
+
+			$scope.project = data.data;
+		});
+
+	$http.get("/api/user/" + User.username).
+		success(function(data) {
+			if (data.status.error) {
+				console.log("Could not get that user..");
+				return;
+			}
+
+			$scope.user = data.data;
+		});
+
+	$http.get('/api/project/' + $routeParams.project + '/flags').
+		success(function(data) {
+			if (data.status.error) {
+				console.log("Could not get project flags");
+				return;
+			}
+
+			$scope.flags = data.data;
 		});
 });
