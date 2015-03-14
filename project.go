@@ -78,5 +78,19 @@ func PostCreateProject(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 		return
 	}
 
-	e.Encode(Response{Message: "Here is the project", Status: NewOKStatus()})
+	e.Encode(Response{Message: "Here is the project", Status: NewOKStatus(), Data: p})
+}
+
+func PostFlagForFeedback(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
+	e := json.NewEncoder(w)
+	query := r.FormValue("query")
+	project := r.FormValue("project")
+
+	f := Flag{ID: bson.NewObjectId(), Query: query, Project: bson.ObjectIdHex(project), Time: time.Now()}
+	if err := models.Persist(f); err != nil {
+		e.Encode(Response{Message: "Could not persist project!", Status: NewFailedStatus()})
+		return
+	}
+
+	e.Encode(Response{Message: "Here is your new flag...", Status: NewOKStatus(), Data: f})
 }

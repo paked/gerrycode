@@ -53,6 +53,8 @@ func (s *Server) InitRouting() {
 
 	api.HandleFunc("/project/new", s.headers(s.restrict(PostCreateProject))).Methods("POST")
 
+	api.HandleFunc("/flag/new", s.headers(s.restrict(PostFlagForFeedback))).Methods("POST")
+
 	api.HandleFunc("/reg", s.restrict(PostLinkUserAccount)).Methods("GET")
 
 	api.HandleFunc("/oauth", GetAuthedGithubAccount).Methods("GET")
