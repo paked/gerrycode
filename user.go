@@ -163,34 +163,3 @@ func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token)
 
 	json.NewEncoder(w).Encode(Response{Message: "Here is you!", Status: NewOKStatus(), Data: u})
 }
-
-// GetUsersProjectsHandler gets the current users projects and returns them in a JSON object
-func GetUsersProjectsHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
-	id, ok := t.Claims["User"].(string)
-	e := json.NewEncoder(w)
-
-	if !ok {
-		e.Encode(Response{Message: "Could not cast interface to a string!", Status: NewServerErrorStatus()})
-		return
-	}
-
-	var u User
-	if err := models.RestoreByID(&u, bson.ObjectIdHex(id)); err != nil {
-		e.Encode(Response{Message: "Could not find you in our db!", Status: NewFailedStatus()})
-		return
-	}
-
-	var repos []Repository
-	repo := Repository{}
-	iter, err := models.Fetch(repo.C(), bson.M{"user": u.Username})
-	if err != nil {
-		e.Encode(Response{Message: "Something went wrong fetching projects...", Status: NewServerErrorStatus()})
-		return
-	}
-
-	for iter.Next(&repo) {
-		repos = append(repos, repo)
-	}
-
-	e.Encode(Response{Message: "Here are your projects!", Status: NewOKStatus(), Data: repos})
-}

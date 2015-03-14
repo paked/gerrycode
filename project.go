@@ -11,11 +11,11 @@ import (
 )
 
 type Project struct {
-	ID    bson.ObjectId `bson:"_id"`
-	Owner bson.ObjectId `bson:"owner"`
-	Name  string        `bson:"name"`
-	URL   string        `bson:"url"`
-	TLDR  string        `bson:"tldr"`
+	ID    bson.ObjectId `bson:"_id" json:"-"`
+	Owner bson.ObjectId `bson:"owner" json:"owner"`
+	Name  string        `bson:"name" json:"name"`
+	URL   string        `bson:"url" json:"url"`
+	TLDR  string        `bson:"tldr" json:"tldr"`
 }
 
 func (p Project) BID() bson.ObjectId {
@@ -93,4 +93,29 @@ func PostFlagForFeedback(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	}
 
 	e.Encode(Response{Message: "Here is your new flag...", Status: NewOKStatus(), Data: f})
+}
+
+// GetUsersProjectsHandler gets the current users projects and returns them in a JSON object
+func GetUsersProjectsHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
+	e := json.NewEncoder(w)
+
+	id, ok := t.Claims["User"].(string)
+	if !ok {
+		e.Encode(Response{Message: "Could not cast interface to a string!", Status: NewServerErrorStatus()})
+		return
+	}
+
+	var projects []Project
+	project := Project{}
+	iter, err := models.Fetch(project.C(), bson.M{"owner": bson.ObjectIdHex(id)})
+	if err != nil {
+		e.Encode(Response{Message: "Something went wrong fetching projects...", Status: NewServerErrorStatus()})
+		return
+	}
+
+	for iter.Next(&project) {
+		projects = append(projects, project)
+	}
+
+	e.Encode(Response{Message: "Here are your projects!", Status: NewOKStatus(), Data: projects})
 }

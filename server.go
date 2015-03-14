@@ -37,7 +37,7 @@ func (s *Server) InitRouting() {
 
 	api.HandleFunc("/user", s.headers(s.restrict(GetCurrentUserHandler))).Methods("GET")
 
-	api.HandleFunc("/user/repositories", s.headers(s.restrict(GetUsersProjectsHandler))).Methods("GET")
+	api.HandleFunc("/user/projects", s.headers(s.restrict(GetUsersProjectsHandler))).Methods("GET")
 
 	api.HandleFunc("/user/{username}", s.headers(GetUserHandler)).Methods("GET")
 
