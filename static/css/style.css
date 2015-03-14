@@ -47,6 +47,11 @@
 	float: right;
 }
 
+.projects a {
+	color: white;
+	text-decoration: none;
+}
+
 .error {
 	color: red;
 	font-weight: bold
