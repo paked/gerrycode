@@ -185,14 +185,15 @@ app.controller('MakeCtrl', function($scope, $http, User) {
 });
 
 app.controller('MyProjectsCtrl', function($scope, $http, User) {
-	$http.get("/api/user/repositories?access_token=" + User.token).
+	$http.get("/api/user/projects?access_token=" + User.token).
 		success(function(data) {
 			if (data.status.error) {
-				console.log("Error in repositories :/");
+				console.log("Error in projects :/");
+				console.log(data);
 				return;
 			}
-
-			$scope.repositories = data.data || [];
+			console.log(data);
+			$scope.projects = data.data || [];
 		}).
 		error(function() {
 			console.log("Error fetching repositories!");
@@ -212,4 +213,16 @@ app.controller('HeaderCtrl', function($scope, $location, $http, User) {
 	User.info();
 
 	$scope.user = User;
+});
+
+app.controller('ProjectCtrl', function($scope, $http, User) {
+	$http.get("/api/user/projects?access_token=" + User.token).
+		success(function(data) {
+			if (data.status.error) {
+				console.log("COuld not get projects");
+				console.log(data);
+			}	
+
+			$scope.projects = data.data;
+		});
 });
