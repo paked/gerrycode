@@ -11,6 +11,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+// Project represents a project which a User has submitted
 type Project struct {
 	ID    bson.ObjectId `bson:"_id" json:"id"`
 	Owner bson.ObjectId `bson:"owner" json:"owner"`
@@ -19,14 +20,17 @@ type Project struct {
 	TLDR  string        `bson:"tldr" json:"tldr"`
 }
 
+// BID is a helper function to fulfill the models.Modeller interface
 func (p Project) BID() bson.ObjectId {
 	return p.ID
 }
 
+// C is a helper function to fulfill the models.Modeller interface
 func (p Project) C() string {
 	return "projects"
 }
 
+// Flag represents a flag by the project owner requesting feedback
 type Flag struct {
 	ID      bson.ObjectId `bson:"_id" json:"id"`
 	Project bson.ObjectId `bson:"project" json:"project"`
@@ -34,14 +38,17 @@ type Flag struct {
 	Time    time.Time     `bson:"time" json:"time"`
 }
 
+// BID a helper function to fulfill the models.Modeller interface
 func (f Flag) BID() bson.ObjectId {
 	return f.BID()
 }
 
+// C a helper function to fulfill the models.Modeller interface
 func (f Flag) C() string {
 	return "flags"
 }
 
+// Feedback represents feedback given by a User on a "flagged" change
 type Feedback struct {
 	ID      bson.ObjectId `bson:"_id"`
 	Project bson.ObjectId `bson:"project"`
@@ -49,14 +56,17 @@ type Feedback struct {
 	Text    bson.ObjectId `bson:"text"`
 }
 
+// BID a helper function to fulfill the models.Modeller interface
 func (f Feedback) BID() bson.ObjectId {
 	return f.BID()
 }
 
+// C a helper function to fulfill the models.Modeller interface
 func (f Feedback) C() string {
 	return "feedback"
 }
 
+// PostCreateProject is the handler to create a project
 func PostCreateProject(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	e := json.NewEncoder(w)
 	var p Project
