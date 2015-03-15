@@ -88,7 +88,7 @@ app.service('User', function($rootScope, $http, $location) {
 			$http.get('/api/user?access_token=' + service.token).
 				success(function(data) {
 					console.log(data);
-					service.token = undefined;
+					service.changeToken(undefined);
 					if (data.status.error) {
 						$location.path("/login");
 						return; 
@@ -97,8 +97,7 @@ app.service('User', function($rootScope, $http, $location) {
 					service.changeUsername(data.data.username);
 				}).
 				error(function(data) {console.log("Unable to get user :/");});
-		}
-	};
+		}};
 
 	return service;
 });
