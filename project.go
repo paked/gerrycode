@@ -101,7 +101,7 @@ func GetProject(w http.ResponseWriter, r *http.Request) {
 func PostFlagForFeedback(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	e := json.NewEncoder(w)
 	query := r.FormValue("query")
-	project := r.FormValue("project")
+	project := mux.Vars(r)["id"]
 
 	f := Flag{ID: bson.NewObjectId(), Query: query, Project: bson.ObjectIdHex(project), Time: time.Now()}
 	if err := models.Persist(f); err != nil {

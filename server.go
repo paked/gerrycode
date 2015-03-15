@@ -47,7 +47,7 @@ func (s *Server) InitRouting() {
 
 	api.HandleFunc("/project/{id}", s.headers(GetProject)).Methods("GET")
 
-	api.HandleFunc("/flag/new", s.headers(s.restrict(PostFlagForFeedback))).Methods("POST")
+	api.HandleFunc("/project/{id}/flags/new", s.headers(s.restrict(PostFlagForFeedback))).Methods("POST")
 
 	api.HandleFunc("/project/{id}/flags", s.headers(GetProjectsFlags)).Methods("GET")
 
