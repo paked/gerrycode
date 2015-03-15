@@ -5,6 +5,7 @@
 
 	<div class="three columns">
 		<h3>by {{user.username}}</h3>
+		<a ng-if="owner" ng-href="#/projects/{{project.id}}/flag" class="button button-primary">Flag for review!</a>
 	</div>
 </div>
 

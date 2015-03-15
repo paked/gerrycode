@@ -15,6 +15,10 @@ app.config(['$routeProvider',
 				templateUrl: '/partials/view_project.html',
 				controller: 'ViewProjectCtrl'
 			}).
+			when('/projects/:project/flag', {
+				templateUrl: '/partials/flag.html',
+				controller: 'FlagCtrl'
+			}).
 			when('/explore', {
 				templateUrl: '/partials/explore.html'
 			}).
@@ -247,6 +251,7 @@ app.controller('ViewProjectCtrl', function($scope, $http, $routeParams, User) {
 			}
 
 			$scope.user = data.data;
+			$scope.owner = $scope.user.username == User.username;
 		});
 
 	$http.get('/api/project/' + $routeParams.project + '/flags').
@@ -258,4 +263,18 @@ app.controller('ViewProjectCtrl', function($scope, $http, $routeParams, User) {
 
 			$scope.flags = data.data;
 		});
+});
+
+app.controller('FlagCtrl', function($scope, $http, User, $routeParams) {
+	$scope.flag = function() {
+		query = $scope.query;
+		if (!query) {
+			return;
+		}
+
+		$http.post('/api/project/' + $routeParams.project +'/flags/new?access_token=' + User.token + '&query=' + query).
+			success(function(data) {
+				console.log(data);
+			});
+	};
 });
