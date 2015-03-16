@@ -92,12 +92,13 @@ app.service('User', function($rootScope, $http, $location) {
 			$http.get('/api/user?access_token=' + service.token).
 				success(function(data) {
 					console.log(data);
+					var old = service.token;
 					service.changeToken(undefined);
 					if (data.status.error) {
 						$location.path("/login");
 						return; 
 					}
-					service.changeToken(localStorage.token);
+					service.changeToken(old);
 					service.changeUsername(data.data.username);
 				}).
 				error(function(data) {console.log("Unable to get user :/");});
@@ -207,6 +208,7 @@ app.controller('MyProjectsCtrl', function($scope, $http, User) {
 app.controller('HeaderCtrl', function($scope, $location, $http, User) {
 	$scope.$on('user.update', function(event) {
 		$scope.user = User;
+		console.log(User.loggedIn());
 	});
 
 	if(!User.loggedIn()) {
