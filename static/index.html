@@ -38,11 +38,11 @@
 			</ul>
 			<div class="u-pull-right">
 				<h3>  </h3> <!--- hack out of the wazoo -->
-				<ul ng-if="user">
+				<ul ng-if="user.loggedIn()">
 					<li><a href="#/me/view">My Projects</a></li>
 					<li>{{user.username}}</li>
 				</ul>
-				<ul ng-if="!user.loggedIn">
+				<ul ng-if="!user.loggedIn()">
 					<li><a href="#/login">Login</a></li>
 					<li><a href="#/register" title="">Register</a></li>
 				</ul>
