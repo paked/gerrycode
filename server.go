@@ -43,13 +43,13 @@ func (s *Server) InitRouting() {
 
 	api.HandleFunc("/user/git/repositories", s.headers(s.restrict(GetUsersRepositories))).Methods("GET")
 
-	api.HandleFunc("/project/new", s.headers(s.restrict(PostCreateProject))).Methods("POST")
+	api.HandleFunc("/project/new", s.headers(s.restrict(PostCreateProjectHandler))).Methods("POST")
 
-	api.HandleFunc("/project/{id}", s.headers(GetProject)).Methods("GET")
+	api.HandleFunc("/project/{id}", s.headers(GetProjectHandler)).Methods("GET")
 
-	api.HandleFunc("/project/{id}/flags/new", s.headers(s.restrict(PostFlagForFeedback))).Methods("POST")
+	api.HandleFunc("/project/{id}/flags/new", s.headers(s.restrict(PostFlagForFeedbackHandler))).Methods("POST")
 
-	api.HandleFunc("/project/{id}/flags", s.headers(GetProjectsFlags)).Methods("GET")
+	api.HandleFunc("/project/{id}/flags", s.headers(GetProjectsFlagsHandler)).Methods("GET")
 
 	api.HandleFunc("/reg", s.restrict(PostLinkUserAccount)).Methods("GET")
 

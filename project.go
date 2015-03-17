@@ -67,7 +67,7 @@ func (f Feedback) C() string {
 }
 
 // PostCreateProject is the handler to create a project
-func PostCreateProject(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
+func PostCreateProjectHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	e := json.NewEncoder(w)
 	var p Project
 	name, url, tldr := r.FormValue("name"), r.FormValue("url"), r.FormValue("tldr")
@@ -94,7 +94,7 @@ func PostCreateProject(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 
 // GetRepository retrieves a Repository.
 // 		GET /api/project/{id}
-func GetProject(w http.ResponseWriter, r *http.Request) {
+func GetProjectHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	e := json.NewEncoder(w)
 	id := vars["id"]
@@ -108,7 +108,7 @@ func GetProject(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(Response{Message: "Here is your project", Status: NewOKStatus(), Data: project})
 }
 
-func PostFlagForFeedback(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
+func PostFlagForFeedbackHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	e := json.NewEncoder(w)
 	query := r.FormValue("query")
 	project := mux.Vars(r)["id"]
@@ -147,7 +147,7 @@ func GetUsersProjectsHandler(w http.ResponseWriter, r *http.Request, t *jwt.Toke
 	e.Encode(Response{Message: "Here are your projects!", Status: NewOKStatus(), Data: projects})
 }
 
-func GetProjectsFlags(w http.ResponseWriter, r *http.Request) {
+func GetProjectsFlagsHandler(w http.ResponseWriter, r *http.Request) {
 	e := json.NewEncoder(w)
 
 	var flags []Flag
