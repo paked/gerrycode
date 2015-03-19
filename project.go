@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -50,10 +51,11 @@ func (f Flag) C() string {
 
 // Feedback represents feedback given by a User on a "flagged" change
 type Feedback struct {
-	ID      bson.ObjectId `bson:"_id"`
-	Project bson.ObjectId `bson:"project"`
-	Flag    bson.ObjectId `bson:"flag"`
-	Text    bson.ObjectId `bson:"text"`
+	ID      bson.ObjectId `bson:"_id" json:"id"`
+	Project bson.ObjectId `bson:"project" json:"project"`
+	Flag    bson.ObjectId `bson:"flag" json:"flag"`
+	Text    string        `bson:"text" json:"text"`
+	User    bson.ObjectId `bson:"user" json:"user"`
 }
 
 // BID a helper function to fulfill the models.Modeller interface
@@ -163,4 +165,53 @@ func GetProjectsFlagsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	e.Encode(Response{Message: "Here are your flags!", Status: NewOKStatus(), Data: flags})
+}
+
+func PostFeedbackOnFlag(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
+	e := json.NewEncoder(w)
+	vars := mux.Vars(r)
+	flag := vars["flag"]
+	project := vars["id"]
+	userString, ok := t.Claims["User"].(string)
+	if !ok {
+		e.Encode(Response{Message: "Unable to cast to string...", Status: NewFailedStatus()})
+		return
+	}
+	user := bson.ObjectIdHex(userString)
+
+	var f Flag
+	if err := models.Restore(&f, bson.M{"_id": bson.ObjectIdHex(flag), "project": bson.ObjectIdHex(project)}); err != nil {
+		e.Encode(Response{Message: "unable to find that flag", Status: NewFailedStatus()})
+		return
+	}
+
+	fee := Feedback{ID: bson.NewObjectId(), Flag: f.ID, Project: f.Project, Text: r.FormValue("text"), User: user}
+	if err := models.Persist(fee); err != nil {
+		fmt.Println(err, "feedback:", fee, "flag:", f)
+		e.Encode(Response{Message: "Couldnt persist that feedback :/", Status: NewFailedStatus()})
+		return
+	}
+
+	e.Encode(Response{Message: "Here is your happy feedback!", Status: NewOKStatus(), Data: fee})
+}
+
+func GetAllFeedbackForFlag(w http.ResponseWriter, r *http.Request) {
+	e := json.NewEncoder(w)
+	vars := mux.Vars(r)
+	flag := bson.ObjectIdHex(vars["flag"])
+	project := bson.ObjectIdHex(vars["id"])
+
+	var feedbacks []Feedback
+	feedback := Feedback{}
+	iter, err := models.Fetch(feedback.C(), bson.M{"flag": flag, "project": project})
+	if err != nil {
+		e.Encode(Response{Message: "Something went wrong fetching flags...", Status: NewServerErrorStatus()})
+		return
+	}
+
+	for iter.Next(&feedback) {
+		feedbacks = append(feedbacks, feedback)
+	}
+
+	e.Encode(Response{Message: "Here are your flags!", Status: NewOKStatus(), Data: feedbacks})
 }
