@@ -15,5 +15,5 @@
 <br>
 <h3>Flags</h3>
 <ul>
-	<li ng-repeat="flag in flags">{{flag.query}}</li>
+	<li ng-repeat="flag in flags"><a ng-href="#/projects/{{project.id}}/flag/{{flag.id}}">{{flag.query}}</a></li>
 </ul>

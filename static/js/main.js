@@ -15,6 +15,10 @@ app.config(['$routeProvider',
 				templateUrl: '/partials/view_project.html',
 				controller: 'ViewProjectCtrl'
 			}).
+			when('/projects/:project/flag/:flag', {
+				templateUrl: '/partials/feedback.html',
+				controller: 'ViewFlagCtrl'
+			}).
 			when('/projects/:project/flag', {
 				templateUrl: '/partials/flag.html',
 				controller: 'FlagCtrl'
@@ -279,4 +283,37 @@ app.controller('FlagCtrl', function($scope, $http, User, $routeParams) {
 				console.log(data);
 			});
 	};
+});
+
+app.controller('ViewFlagCtrl', function($scope, $http, $routeParams) {
+	$http.get('/api/project/' + $routeParams.project + '/flags/' + $routeParams.flag + '/feedback').
+		success(function(data) {
+			if (data.status.error) {
+				console.log("could not get all of dat feedback!");
+				return;
+			}
+
+			$scope.feedbacks = data.data;
+			console.log($scope.feedbacks);
+		});
+
+	$http.get("/api/project/" + $routeParams.project).
+		success(function(data) {
+			if (data.status.error) {
+				console.log("Could not get that project....");
+				return;
+			}
+
+			$scope.project = data.data;
+		});
+
+	$http.get('/api/project/' + $routeParams.project + '/flags/' + $routeParams.flag).
+		success(function(data) {
+			if (data.status.error) {
+				console.log("Unable to get that flag :/");
+				return;
+			}
+
+			$scope.flag = data.data;
+		});
 });
