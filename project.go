@@ -167,6 +167,23 @@ func GetProjectsFlagsHandler(w http.ResponseWriter, r *http.Request) {
 	e.Encode(Response{Message: "Here are your flags!", Status: NewOKStatus(), Data: flags})
 }
 
+func GetFlagHandler(w http.ResponseWriter, r *http.Request) {
+	e := json.NewEncoder(w)
+	vars := mux.Vars(r)
+
+	flagID := bson.ObjectIdHex(vars["flag"])
+	projectID := bson.ObjectIdHex(vars["id"])
+
+	var f Flag
+	if err := models.Restore(&f, bson.M{"project": projectID, "_id": flagID}); err != nil {
+		fmt.Println(projectID, flagID)
+		e.Encode(Response{Message: "Could not find that flag.", Status: NewFailedStatus()})
+		return
+	}
+
+	e.Encode(Response{Message: "Here is your flag!", Status: NewOKStatus(), Data: f})
+}
+
 func PostFeedbackOnFlag(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	e := json.NewEncoder(w)
 	vars := mux.Vars(r)
