@@ -163,7 +163,7 @@ app.controller('AuthCtrl', function($scope, $routeParams, $http, $location, User
 	};
 });
 
-app.controller('MakeCtrl', function($scope, $http, User) {
+app.controller('MakeCtrl', function($scope, $http, $location, User) {
 	$scope.make = function() {
 		name = $scope.name;
 		url = $scope.url;
@@ -189,6 +189,7 @@ app.controller('MakeCtrl', function($scope, $http, User) {
 				}
 				console.log("done!");
 				console.log(data);
+				$location.path("/projects/" + data.data.id);
 			});
 	};
 });
@@ -271,7 +272,7 @@ app.controller('ViewProjectCtrl', function($scope, $http, $routeParams, User) {
 		});
 });
 
-app.controller('FlagCtrl', function($scope, $http, User, $routeParams) {
+app.controller('FlagCtrl', function($scope, $http, User, $routeParams, $location) {
 	$scope.flag = function() {
 		query = $scope.query;
 		if (!query) {
@@ -281,6 +282,7 @@ app.controller('FlagCtrl', function($scope, $http, User, $routeParams) {
 		$http.post('/api/project/' + $routeParams.project +'/flags/new?access_token=' + User.token + '&query=' + query).
 			success(function(data) {
 				console.log(data);
+				$location.path("/projects/" + $routeParams.project + "/flag/" + data.data.id);
 			});
 	};
 });
