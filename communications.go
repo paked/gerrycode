@@ -44,7 +44,7 @@ func NewCommunicator(w http.ResponseWriter) *Communicator {
 }
 
 type Communicator struct {
-	*json.Encoder
+	e *json.Encoder
 }
 
 func (c Communicator) Fail(message string) {
@@ -79,7 +79,7 @@ func (c Communicator) message(message string, status Status, data interface{}) R
 }
 
 func (c Communicator) writeMessage(r Response) {
-	if err := c.Encode(r); err != nil {
-		c.Encode("Something went very wrong!")
+	if err := c.e.Encode(r); err != nil {
+		c.e.Encode("Something went very wrong!")
 	}
 }
