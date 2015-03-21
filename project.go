@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -70,67 +69,66 @@ func (f Feedback) C() string {
 
 // PostCreateProject is the handler to create a project
 func PostCreateProjectHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
-	e := json.NewEncoder(w)
+	c := NewCommunicator(w)
 	var p Project
 	name, url, tldr := r.FormValue("name"), r.FormValue("url"), r.FormValue("tldr")
 	id, ok := t.Claims["User"].(string)
 
 	if !ok {
-		e.Encode(Response{Message: "Unable to get that user... logout maybe?", Status: NewFailedStatus()})
+		c.Error("Unable to correctly marshal that id!")
 		return
 	}
 
 	if err := models.Restore(&p, bson.M{"url": url}); err == nil {
-		e.Encode(Response{Message: "That project already exists", Status: NewFailedStatus()})
+		c.Fail("That project already exists!")
 		return
 	}
 
 	p = Project{ID: bson.NewObjectId(), Owner: bson.ObjectIdHex(id), Name: name, URL: url, TLDR: tldr}
 	if err := models.Persist(p); err != nil {
-		e.Encode(Response{Message: "Error persisting your new project", Status: NewFailedStatus()})
+		c.Error("Error persisting that new project!")
 		return
 	}
 
-	e.Encode(Response{Message: "Here is the project", Status: NewOKStatus(), Data: p})
+	c.OKWithData("Here is your user!", p)
 }
 
 // GetRepository retrieves a Repository.
 // 		GET /api/project/{id}
 func GetProjectHandler(w http.ResponseWriter, r *http.Request) {
+	c := NewCommunicator(w)
 	vars := mux.Vars(r)
-	e := json.NewEncoder(w)
 	id := vars["id"]
 
-	var project Project
-	if err := models.RestoreByID(&project, bson.ObjectIdHex(id)); err != nil {
-		e.Encode(Response{Message: "That project does not exist", Status: NewFailedStatus()})
+	var p Project
+	if err := models.RestoreByID(&p, bson.ObjectIdHex(id)); err != nil {
+		c.Fail("That project does not exist!")
 		return
 	}
 
-	json.NewEncoder(w).Encode(Response{Message: "Here is your project", Status: NewOKStatus(), Data: project})
+	c.OKWithData("Here is your new project", p)
 }
 
 func PostFlagForFeedbackHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
-	e := json.NewEncoder(w)
+	c := NewCommunicator(w)
 	query := r.FormValue("query")
 	project := mux.Vars(r)["id"]
 
 	f := Flag{ID: bson.NewObjectId(), Query: query, Project: bson.ObjectIdHex(project), Time: time.Now()}
 	if err := models.Persist(f); err != nil {
-		e.Encode(Response{Message: "Could not persist project!", Status: NewFailedStatus()})
+		c.Error("Unable to persist that error!")
 		return
 	}
 
-	e.Encode(Response{Message: "Here is your new flag...", Status: NewOKStatus(), Data: f})
+	c.OKWithData("Here is your new flag", f)
 }
 
 // GetUsersProjectsHandler gets the current users projects and returns them in a JSON object
 func GetUsersProjectsHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
-	e := json.NewEncoder(w)
-
+	c := NewCommunicator(w)
 	id, ok := t.Claims["User"].(string)
 	if !ok {
-		e.Encode(Response{Message: "Could not cast interface to a string!", Status: NewServerErrorStatus()})
+		c.Error("Unable to get that id from token...")
 		return
 	}
 
@@ -138,7 +136,7 @@ func GetUsersProjectsHandler(w http.ResponseWriter, r *http.Request, t *jwt.Toke
 	project := Project{}
 	iter, err := models.Fetch(project.C(), bson.M{"owner": bson.ObjectIdHex(id)})
 	if err != nil {
-		e.Encode(Response{Message: "Something went wrong fetching projects...", Status: NewServerErrorStatus()})
+		c.Fail("Those projects don't exist!")
 		return
 	}
 
@@ -146,17 +144,17 @@ func GetUsersProjectsHandler(w http.ResponseWriter, r *http.Request, t *jwt.Toke
 		projects = append(projects, project)
 	}
 
-	e.Encode(Response{Message: "Here are your projects!", Status: NewOKStatus(), Data: projects})
+	c.OKWithData("Here are your projects", projects)
 }
 
 func GetProjectsFlagsHandler(w http.ResponseWriter, r *http.Request) {
-	e := json.NewEncoder(w)
+	c := NewCommunicator(w)
 
 	var flags []Flag
 	flag := Flag{}
 	iter, err := models.Fetch(flag.C(), bson.M{"project": bson.ObjectIdHex(mux.Vars(r)["id"])})
 	if err != nil {
-		e.Encode(Response{Message: "Something went wrong fetching flags...", Status: NewServerErrorStatus()})
+		c.Fail("Those flags don't exist!")
 		return
 	}
 
@@ -164,11 +162,11 @@ func GetProjectsFlagsHandler(w http.ResponseWriter, r *http.Request) {
 		flags = append(flags, flag)
 	}
 
-	e.Encode(Response{Message: "Here are your flags!", Status: NewOKStatus(), Data: flags})
+	c.OKWithData("Here are your flags", flags)
 }
 
 func GetFlagHandler(w http.ResponseWriter, r *http.Request) {
-	e := json.NewEncoder(w)
+	c := NewCommunicator(w)
 	vars := mux.Vars(r)
 
 	flagID := bson.ObjectIdHex(vars["flag"])
@@ -177,43 +175,43 @@ func GetFlagHandler(w http.ResponseWriter, r *http.Request) {
 	var f Flag
 	if err := models.Restore(&f, bson.M{"project": projectID, "_id": flagID}); err != nil {
 		fmt.Println(projectID, flagID)
-		e.Encode(Response{Message: "Could not find that flag.", Status: NewFailedStatus()})
+		c.Fail("That flag doesnt exist!")
 		return
 	}
 
-	e.Encode(Response{Message: "Here is your flag!", Status: NewOKStatus(), Data: f})
+	c.OKWithData("Here is your flag...", f)
 }
 
 func PostFeedbackOnFlag(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
-	e := json.NewEncoder(w)
+	c := NewCommunicator(w)
 	vars := mux.Vars(r)
 	flag := vars["flag"]
 	project := vars["id"]
 	userString, ok := t.Claims["User"].(string)
 	if !ok {
-		e.Encode(Response{Message: "Unable to cast to string...", Status: NewFailedStatus()})
+		c.Error("Unable to marshal that ID!")
 		return
 	}
 	user := bson.ObjectIdHex(userString)
 
 	var f Flag
 	if err := models.Restore(&f, bson.M{"_id": bson.ObjectIdHex(flag), "project": bson.ObjectIdHex(project)}); err != nil {
-		e.Encode(Response{Message: "unable to find that flag", Status: NewFailedStatus()})
+		c.Fail("Could not find that flag!")
 		return
 	}
 
 	fee := Feedback{ID: bson.NewObjectId(), Flag: f.ID, Project: f.Project, Text: r.FormValue("text"), User: user}
 	if err := models.Persist(fee); err != nil {
 		fmt.Println(err, "feedback:", fee, "flag:", f)
-		e.Encode(Response{Message: "Couldnt persist that feedback :/", Status: NewFailedStatus()})
+		c.Error("Could not persist your flag!")
 		return
 	}
 
-	e.Encode(Response{Message: "Here is your happy feedback!", Status: NewOKStatus(), Data: fee})
+	c.OKWithData("Here is your feedback", fee)
 }
 
 func GetAllFeedbackForFlag(w http.ResponseWriter, r *http.Request) {
-	e := json.NewEncoder(w)
+	c := NewCommunicator(w)
 	vars := mux.Vars(r)
 	flag := bson.ObjectIdHex(vars["flag"])
 	project := bson.ObjectIdHex(vars["id"])
@@ -222,7 +220,7 @@ func GetAllFeedbackForFlag(w http.ResponseWriter, r *http.Request) {
 	feedback := Feedback{}
 	iter, err := models.Fetch(feedback.C(), bson.M{"flag": flag, "project": project})
 	if err != nil {
-		e.Encode(Response{Message: "Something went wrong fetching flags...", Status: NewServerErrorStatus()})
+		c.Fail("Unable to get all that feedback!")
 		return
 	}
 
@@ -230,5 +228,5 @@ func GetAllFeedbackForFlag(w http.ResponseWriter, r *http.Request) {
 		feedbacks = append(feedbacks, feedback)
 	}
 
-	e.Encode(Response{Message: "Here are your flags!", Status: NewOKStatus(), Data: feedbacks})
+	c.OKWithData("Here is your feedback", feedbacks)
 }
