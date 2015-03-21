@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -86,20 +85,19 @@ func (s Server) headers(fn http.HandlerFunc) http.HandlerFunc {
 func (s Server) restrict(fn func(http.ResponseWriter, *http.Request, *jwt.Token)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenString := r.FormValue("access_token")
-		e := json.NewEncoder(w)
-
+		c := NewCommunicator(w)
 		token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
 			return verifyKey, nil
 		})
 
 		if err != nil {
-			e.Encode(Response{Message: "That is not a valid token", Status: NewFailedStatus()})
+			c.Fail("You are not using a valid token:" + err.Error())
 			fmt.Println(err)
 			return
 		}
 
 		if !token.Valid {
-			e.Encode(Response{Message: "Something obsurely strange happened to your token", Status: NewServerErrorStatus()})
+			c.Fail("Something obscurely weird happened to your token!")
 			return
 		}
 
