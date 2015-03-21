@@ -1,12 +1,12 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
-	"github.com/dgrijalva/jwt-go"
 	"net/http"
 	"regexp"
 	"time"
+
+	"github.com/dgrijalva/jwt-go"
 
 	"github.com/gorilla/mux"
 	"github.com/paked/models"
@@ -61,43 +61,42 @@ func LoginUser(username string, password string) (User, error) {
 // NewUserHandler creates a new user.
 // 		POST /api/user/register?username=paked&pasword=pw
 func NewUserHandler(w http.ResponseWriter, r *http.Request) {
+	c := NewCommunicator(w)
 	username := credentialsRegex.FindString(r.FormValue("username"))
 	email := emailRegex.FindString(r.FormValue("email"))
 	password := credentialsRegex.FindString(r.FormValue("password"))
 
-	e := json.NewEncoder(w)
-
 	if username == "" || email == "" || password == "" {
-		e.Encode(Response{Message: "Your username, password or email is not valid.", Status: NewFailedStatus()})
+		c.Fail("That is not a valid username password, or email")
 		return
 	}
 
 	var u User
 	if err := models.Restore(&u, bson.M{"username": username}); err == nil {
-		e.Encode(Response{Message: "That user already exists!", Status: NewFailedStatus(), Data: u})
+		c.Fail("That user already exists!")
 		return
 	}
 
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	if err != nil {
-		e.Encode(Response{Message: "Unable to hash your password :/", Status: NewFailedStatus()})
+		c.Error("Something bad happened while hashing your password!")
 		return
 	}
 
 	u = User{ID: bson.NewObjectId(), Username: username, Email: email, PasswordHash: passwordHash}
 	if err := models.Persist(u); err != nil {
-		e.Encode(Response{Message: "Could not submit that user", Status: NewServerErrorStatus()})
+		c.Error("Unable to persist that new user!")
 		return
 	}
 
-	e.Encode(Response{Message: "Here is your user!", Status: NewOKStatus(), Data: u})
+	c.OKWithData("Here is your new user", u)
 }
 
 // GetUserHandler retrieves a User from the database
 // 		GET /api/user/{username}
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
+	c := NewCommunicator(w)
 	vars := mux.Vars(r)
-	e := json.NewEncoder(w)
 	lookup := vars["username"]
 
 	var err error
@@ -109,30 +108,29 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		e.Encode(Response{Message: "That user does not exist", Status: NewFailedStatus()})
+		c.Fail("Can't find that user")
 		return
 	}
 
-	e.Encode(Response{Message: "We found that user!", Status: NewOKStatus(), Data: u})
+	c.OKWithData("Here is the user you were looking for", u)
 }
 
 // LoginUserHandler checks the provided login credentials and if valid return an access_token.
 //		POST /api/user/login?username=paked&password=pw
 func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
+	c := NewCommunicator(w)
 	username := credentialsRegex.FindString(r.FormValue("username"))
 	password := credentialsRegex.FindString(r.FormValue("password"))
 
-	e := json.NewEncoder(w)
-
 	if username == "" || password == "" {
-		e.Encode(Response{Message: "That is not a valid username or password", Status: NewFailedStatus()})
+		c.Fail("That is not a valid username or password")
 		return
 	}
 
 	u, err := LoginUser(username, password)
 
 	if err != nil {
-		e.Encode(Response{Message: "Could not find your user :)", Status: NewFailedStatus()})
+		c.Fail("Could not login your user")
 		return
 	}
 
@@ -145,29 +143,29 @@ func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	tokenString, err := t.SignedString(signKey)
 
 	if err != nil {
-		e.Encode(Response{Message: "We could not sign the token made for you", Status: NewServerErrorStatus()})
+		c.Error("Error signing that token")
 		return
 	}
 
-	json.NewEncoder(w).Encode(Response{Message: "Here is your token!", Status: NewOKStatus(), Data: tokenString})
+	c.OKWithData("Here is your token", tokenString)
 }
 
 // GetCurrentUserHandler retrieves the User currently logged in.
 // 		GET /api/user?api_token=xxx
 func GetCurrentUserHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
+	c := NewCommunicator(w)
 	id, ok := t.Claims["User"].(string)
-	e := json.NewEncoder(w)
 
 	if !ok {
-		e.Encode(Response{Message: "Could not cast interface to that bson.ObjectId!", Status: NewServerErrorStatus()})
+		c.Error("Could not cast that id to string!")
 		return
 	}
 
 	var u User
 	if err := models.RestoreByID(&u, bson.ObjectIdHex(id)); err != nil {
-		e.Encode(Response{Message: "Could not find that user!", Status: NewFailedStatus()})
+		c.Fail("Could not find that user!")
 		return
 	}
 
-	json.NewEncoder(w).Encode(Response{Message: "Here is you!", Status: NewOKStatus(), Data: u})
+	c.OKWithData("Here is you", u)
 }
