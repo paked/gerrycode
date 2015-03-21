@@ -84,6 +84,11 @@ func PostCreateProjectHandler(w http.ResponseWriter, r *http.Request, t *jwt.Tok
 		return
 	}
 
+	if !bson.IsObjectIdHex(id) {
+		c.Fail("That is not a recognized bson.ObjectID")
+		return
+	}
+
 	p = Project{ID: bson.NewObjectId(), Owner: bson.ObjectIdHex(id), Name: name, URL: url, TLDR: tldr}
 	if err := models.Persist(p); err != nil {
 		c.Error("Error persisting that new project!")
@@ -100,6 +105,11 @@ func GetProjectHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
+	if !bson.IsObjectIdHex(id) {
+		c.Fail("That is not a recognized bson.ObjectID")
+		return
+	}
+
 	var p Project
 	if err := models.RestoreByID(&p, bson.ObjectIdHex(id)); err != nil {
 		c.Fail("That project does not exist!")
@@ -113,6 +123,11 @@ func PostFlagForFeedbackHandler(w http.ResponseWriter, r *http.Request, t *jwt.T
 	c := NewCommunicator(w)
 	query := r.FormValue("query")
 	project := mux.Vars(r)["id"]
+
+	if !bson.IsObjectIdHex(project) {
+		c.Fail("That is not a recognized bson.ObjectID")
+		return
+	}
 
 	f := Flag{ID: bson.NewObjectId(), Query: query, Project: bson.ObjectIdHex(project), Time: time.Now()}
 	if err := models.Persist(f); err != nil {
@@ -129,6 +144,11 @@ func GetUsersProjectsHandler(w http.ResponseWriter, r *http.Request, t *jwt.Toke
 	id, ok := t.Claims["User"].(string)
 	if !ok {
 		c.Error("Unable to get that id from token...")
+		return
+	}
+
+	if !bson.IsObjectIdHex(id) {
+		c.Fail("That is not a recognized bson.ObjectID")
 		return
 	}
 
@@ -149,10 +169,16 @@ func GetUsersProjectsHandler(w http.ResponseWriter, r *http.Request, t *jwt.Toke
 
 func GetProjectsFlagsHandler(w http.ResponseWriter, r *http.Request) {
 	c := NewCommunicator(w)
+	id := mux.Vars(r)["id"]
+
+	if !bson.IsObjectIdHex(id) {
+		c.Error("That is not a valid objectID")
+		return
+	}
 
 	var flags []Flag
 	flag := Flag{}
-	iter, err := models.Fetch(flag.C(), bson.M{"project": bson.ObjectIdHex(mux.Vars(r)["id"])})
+	iter, err := models.Fetch(flag.C(), bson.M{"project": bson.ObjectIdHex(id)})
 	if err != nil {
 		c.Fail("Those flags don't exist!")
 		return
@@ -169,8 +195,16 @@ func GetFlagHandler(w http.ResponseWriter, r *http.Request) {
 	c := NewCommunicator(w)
 	vars := mux.Vars(r)
 
-	flagID := bson.ObjectIdHex(vars["flag"])
-	projectID := bson.ObjectIdHex(vars["id"])
+	flagString := vars["flag"]
+	projectString := vars["id"]
+
+	if !(bson.IsObjectIdHex(flagString) && bson.IsObjectIdHex(projectString)) {
+		c.Fail("That is not a valid objectID")
+		return
+	}
+
+	flagID := bson.ObjectIdHex(flagString)
+	projectID := bson.ObjectIdHex(projectString)
 
 	var f Flag
 	if err := models.Restore(&f, bson.M{"project": projectID, "_id": flagID}); err != nil {
@@ -187,6 +221,12 @@ func PostFeedbackOnFlag(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	vars := mux.Vars(r)
 	flag := vars["flag"]
 	project := vars["id"]
+
+	if !(bson.IsObjectIdHex(flag) && bson.IsObjectIdHex(project)) {
+		c.Fail("That is not a valid objectID")
+		return
+	}
+
 	userString, ok := t.Claims["User"].(string)
 	if !ok {
 		c.Error("Unable to marshal that ID!")
@@ -213,8 +253,15 @@ func PostFeedbackOnFlag(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 func GetAllFeedbackForFlag(w http.ResponseWriter, r *http.Request) {
 	c := NewCommunicator(w)
 	vars := mux.Vars(r)
-	flag := bson.ObjectIdHex(vars["flag"])
-	project := bson.ObjectIdHex(vars["id"])
+	flagString := vars["flag"]
+	projectString := vars["id"]
+	if !(bson.IsObjectIdHex(flagString) && bson.IsObjectIdHex(projectString)) {
+		c.Fail("That is not a valid bson.ObjectID")
+		return
+	}
+
+	flag := bson.ObjectIdHex(flagString)
+	project := bson.ObjectIdHex(projectString)
 
 	var feedbacks []Feedback
 	feedback := Feedback{}
