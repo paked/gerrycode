@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 )
 
@@ -36,4 +37,49 @@ func NewForbiddenStatus() Status {
 // NewServerErrorStatus returns a new Status object saying a server error has occured
 func NewServerErrorStatus() Status {
 	return Status{http.StatusInternalServerError, "Something bad has happened, we're sending the calvalry.", true}
+}
+
+func NewCommunicator(w http.ResponseWriter) *Communicator {
+	return &Communicator{json.NewEncoder(w)}
+}
+
+type Communicator struct {
+	*json.Encoder
+}
+
+func (c Communicator) Fail(message string) {
+	c.FailWithData(message, nil)
+}
+
+func (c Communicator) FailWithData(message string, data interface{}) {
+	r := c.message(message, NewFailedStatus(), data)
+	c.writeMessage(r)
+}
+
+func (c Communicator) OK(message string) {
+	c.OKWithData(message, nil)
+}
+
+func (c Communicator) OKWithData(message string, data interface{}) {
+	r := c.message(message, NewOKStatus(), data)
+	c.writeMessage(r)
+}
+
+func (c Communicator) Error(message string) {
+	c.ErrorWithData(message, nil)
+}
+
+func (c Communicator) ErrorWithData(message string, data interface{}) {
+	r := c.message(message, NewServerErrorStatus(), data)
+	c.writeMessage(r)
+}
+
+func (c Communicator) message(message string, status Status, data interface{}) Response {
+	return Response{Message: message, Status: status, Data: data}
+}
+
+func (c Communicator) writeMessage(r Response) {
+	if err := c.Encode(r); err != nil {
+		c.Encode("Something went very wrong!")
+	}
 }
