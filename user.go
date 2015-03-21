@@ -98,9 +98,17 @@ func NewUserHandler(w http.ResponseWriter, r *http.Request) {
 func GetUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	e := json.NewEncoder(w)
+	lookup := vars["username"]
 
+	var err error
 	var u User
-	if err := models.Restore(&u, bson.M{"username": vars["username"]}); err != nil {
+	if bson.IsObjectIdHex(lookup) {
+		err = models.RestoreByID(&u, bson.ObjectIdHex(lookup))
+	} else {
+		err = models.Restore(&u, bson.M{"username": lookup})
+	}
+
+	if err != nil {
 		e.Encode(Response{Message: "That user does not exist", Status: NewFailedStatus()})
 		return
 	}
