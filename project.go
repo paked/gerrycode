@@ -216,7 +216,7 @@ func GetFlagHandler(w http.ResponseWriter, r *http.Request) {
 	c.OKWithData("Here is your flag...", f)
 }
 
-func PostFeedbackOnFlag(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
+func PostFeedbackOnFlagHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	c := NewCommunicator(w)
 	vars := mux.Vars(r)
 	flag := vars["flag"]
@@ -250,7 +250,7 @@ func PostFeedbackOnFlag(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	c.OKWithData("Here is your feedback", fee)
 }
 
-func GetAllFeedbackForFlag(w http.ResponseWriter, r *http.Request) {
+func GetAllFeedbackForFlagHandler(w http.ResponseWriter, r *http.Request) {
 	c := NewCommunicator(w)
 	vars := mux.Vars(r)
 	flagString := vars["flag"]
