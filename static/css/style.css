@@ -52,7 +52,23 @@
 	text-decoration: none;
 }
 
+.projects.big {
+	min-width: 90%;
+	font-size: 3rem;
+}
+
 .error {
 	color: red;
-	font-weight: bold
+	font-weight: bold;
+}
+
+.button-danger {
+	background-color: red;
+	border-color: red;
+	color: white;
+}
+
+.button-danger:hover {
+	color: #F3F3F3;
+	border-color: orange;
 }

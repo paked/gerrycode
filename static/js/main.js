@@ -15,6 +15,9 @@ app.config(['$routeProvider',
 				templateUrl: '/partials/view_project.html',
 				controller: 'ViewProjectCtrl'
 			}).
+			when('/projects/:project/settings', {
+				templateUrl: '/partials/project_settings.html'
+			}).
 			when('/projects/:project/flag/:flag', {
 				templateUrl: '/partials/feedback.html',
 				controller: 'ViewFlagCtrl'
@@ -318,4 +321,18 @@ app.controller('ViewFlagCtrl', function($scope, $http, $routeParams) {
 
 			$scope.flag = data.data;
 		});
+
+	$scope.getUsername = function(id) {
+		$scope[name] = "looking up...";
+/*		$http.get('/api/user/' + id).
+			success(function(data) {
+				$scope[name] = data.data.username;	
+			});*/
+		console.log(name);
+	};
+
+	$scope.createName = function(id) {	
+		return "id_" + id;
+	};
+
 });
