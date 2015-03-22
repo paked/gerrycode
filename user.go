@@ -40,11 +40,6 @@ func (u User) C() string {
 	return "users"
 }
 
-func (u User) WriteReview(c string, id bson.ObjectId) (Review, error) {
-	rev := Review{ID: bson.NewObjectId(), From: u.ID, Repository: id, Content: c}
-	return rev, models.Persist(&rev)
-}
-
 func LoginUser(username string, password string) (User, error) {
 	u := User{}
 	if err := models.Restore(&u, bson.M{"username": username}); err != nil {
