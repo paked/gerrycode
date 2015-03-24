@@ -290,7 +290,7 @@ app.controller('FlagCtrl', function($scope, $http, User, $routeParams, $location
 	};
 });
 
-app.controller('ViewFlagCtrl', function($scope, $http, $routeParams) {
+app.controller('ViewFlagCtrl', function($scope, $http, $routeParams, User) {
 	$http.get('/api/project/' + $routeParams.project + '/flags/' + $routeParams.flag + '/feedback').
 		success(function(data) {
 			if (data.status.error) {
@@ -298,7 +298,7 @@ app.controller('ViewFlagCtrl', function($scope, $http, $routeParams) {
 				return;
 			}
 
-			$scope.feedbacks = data.data;
+			$scope.feedbacks = data.data || [];
 			console.log($scope.feedbacks);
 		});
 
@@ -334,5 +334,23 @@ app.controller('ViewFlagCtrl', function($scope, $http, $routeParams) {
 	$scope.createName = function(id) {	
 		return "id_" + id;
 	};
+
+    $scope.feedback = function() {
+        console.log("pushing feedbakc");
+        var text = $scope.text;
+        if (!text) {
+            console.log("text not found!");
+            return;
+        }
+
+        $http.post('/api/project/' + $scope.project.id +'/flags/' + $scope.flag.id + '/feedback/new?text='+ text + '&access_token=' + User.token)
+            .success(function(data) {
+                if (data.status.error) {
+                    console.log(data);
+                    return;
+                }
+                $scope.feedbacks.push(data.data);
+            });
+    };
 
 });

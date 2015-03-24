@@ -2,6 +2,9 @@
 
 <p>This feedback is being given for this query: {{flag.query}}</p>
 
+<input type="text" class="u-full-width" ng-model="text">
+<button ng-click="feedback()" class="button button-primary">Send your own feedback</button>
+
 <ul>
 	<li ng-repeat="feedback in feedbacks">{{feedback.text}} by {{feedback.user}}</li>
 </ul>
