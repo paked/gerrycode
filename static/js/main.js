@@ -114,6 +114,24 @@ app.service('User', function($rootScope, $http, $location) {
 	return service;
 });
 
+app.directive('rrUsername', function($http) {
+    return {
+        restrict: 'E',
+        link: function(scope) {
+            $http.get("/api/user/" + scope.feedback.user).
+                success(function(data) {
+                    if (data.status.error) {
+                        console.log("Could not get that user.." + scope.feedback.user);
+                        return;
+                    }
+                    
+                    scope.username = data.data.username;
+               });
+        },
+        template: '{{username}}'
+    };
+});
+
 app.controller('MainCtrl', function($scope, User) {
 	$scope.$on('user.update', function(event) {
 		$scope.message = User.username;
