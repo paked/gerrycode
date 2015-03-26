@@ -1,3 +1,24 @@
-<input type="text" ng-model="query" placeholder="flag message"/>
+<!--<input type="text" ng-model="query" placeholder="flag message"/>
 
 <button class="button button-primary" ng-click="flag()">Flag!</button>
+-->
+<div class="row"> 
+    <div class="ten columns offset-by-one">
+        <h3>Create a new flag for repo-review</h3>
+        
+        <!-- TODO: Add title field to db-->
+        <label>A quick title:</label>
+        <input type="text" class="u-full-width" ng-model="title"/>
+
+        <label>Your query:</label>
+        <textarea class="u-full-width" ng-model="query"></textarea>
+        
+        <!-- TODO: Get actual files... -->
+        <label>Which files should people be looking at?</label>
+        <input type="checkbox" name="files" value="txt.txt"/> txt.txt
+        <input type="checkbox" name="files" value="sekrit.c"/> sekrit.c
+
+        <br>
+        <button class="button button-primary" ng-click="flag()">Send your flag!</button>
+    </div>
+</div>
