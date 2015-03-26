@@ -169,6 +169,7 @@ func GetUsersProjectsHandler(w http.ResponseWriter, r *http.Request, t *jwt.Toke
 	c.OKWithData("Here are your projects", projects)
 }
 
+// GetProjectsFlagsHandler gets all of the flags on a specific project
 func GetProjectsFlagsHandler(w http.ResponseWriter, r *http.Request) {
 	c := NewCommunicator(w)
 	id := mux.Vars(r)["id"]
@@ -193,6 +194,7 @@ func GetProjectsFlagsHandler(w http.ResponseWriter, r *http.Request) {
 	c.OKWithData("Here are your flags", flags)
 }
 
+// GetFlagHandler retrieves a flag from the database
 func GetFlagHandler(w http.ResponseWriter, r *http.Request) {
 	c := NewCommunicator(w)
 	vars := mux.Vars(r)
@@ -218,6 +220,7 @@ func GetFlagHandler(w http.ResponseWriter, r *http.Request) {
 	c.OKWithData("Here is your flag...", f)
 }
 
+// PostFeedbackOnFlagHandler adds feedback onto a flag
 func PostFeedbackOnFlagHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	c := NewCommunicator(w)
 	vars := mux.Vars(r)
@@ -252,6 +255,7 @@ func PostFeedbackOnFlagHandler(w http.ResponseWriter, r *http.Request, t *jwt.To
 	c.OKWithData("Here is your feedback", fee)
 }
 
+// GetAllFeedbackForFlagHandler gets all of the feedback on a specified flag
 func GetAllFeedbackForFlagHandler(w http.ResponseWriter, r *http.Request) {
 	c := NewCommunicator(w)
 	vars := mux.Vars(r)
