@@ -264,6 +264,7 @@ app.controller('ViewProjectCtrl', function($scope, $http, $routeParams, User) {
 	$http.get("/api/project/" + $routeParams.project).
 		success(function(data) {
 			if (data.status.error) {
+                console.log(data);
 				console.log("Could not get that project....");
 				return;
 			}
@@ -295,12 +296,17 @@ app.controller('ViewProjectCtrl', function($scope, $http, $routeParams, User) {
 
 app.controller('FlagCtrl', function($scope, $http, User, $routeParams, $location) {
 	$scope.flag = function() {
+        title = $scope.title;
 		query = $scope.query;
 		if (!query) {
 			return;
 		}
 
-		$http.post('/api/project/' + $routeParams.project +'/flags/new?access_token=' + User.token + '&query=' + query).
+        if (!title) {
+            return;
+        }
+
+		$http.post('/api/project/' + $routeParams.project +'/flags/new?access_token=' + User.token + '&query=' + query + '&title=' + title).
 			success(function(data) {
 				console.log(data);
 				$location.path("/projects/" + $routeParams.project + "/flag/" + data.data.id);
