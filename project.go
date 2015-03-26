@@ -34,6 +34,7 @@ func (p Project) C() string {
 type Flag struct {
 	ID      bson.ObjectId `bson:"_id" json:"id"`
 	Project bson.ObjectId `bson:"project" json:"project"`
+	Title   string        `bson:"title" json:"title"`
 	Query   string        `bson:"query" json:"query"`
 	Time    time.Time     `bson:"time" json:"time"`
 }
@@ -122,6 +123,7 @@ func GetProjectHandler(w http.ResponseWriter, r *http.Request) {
 func PostFlagForFeedbackHandler(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	c := NewCommunicator(w)
 	query := r.FormValue("query")
+	title := r.FormValue("title")
 	project := mux.Vars(r)["id"]
 
 	if !bson.IsObjectIdHex(project) {
@@ -129,7 +131,7 @@ func PostFlagForFeedbackHandler(w http.ResponseWriter, r *http.Request, t *jwt.T
 		return
 	}
 
-	f := Flag{ID: bson.NewObjectId(), Query: query, Project: bson.ObjectIdHex(project), Time: time.Now()}
+	f := Flag{ID: bson.NewObjectId(), Query: query, Title: title, Project: bson.ObjectIdHex(project), Time: time.Now()}
 	if err := models.Persist(f); err != nil {
 		c.Error("Unable to persist that error!")
 		return
