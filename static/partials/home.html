@@ -11,13 +11,8 @@
 
 	<div class="one-half column">
 		<ul class="projects">
-			<li>Bills Big Banking app <span>10/10</span></li>
-			<li>Johns transport transporter <span>8/10</span></li>
-			<li>LibLib a library for making libraries <span>7/10</span></li>
-			<li>Bills Big Banking app <span>10/10</span></li>
-			<li>Johns transport transporter <span>8/10</span></li>
-			<li>LibLib a library for making libraries <span>7/10</span></li>
-		</ul>
+            <li ng-repeat="project in projects"><a ng-href="#/projects/{{project.id}}">{{project.name}}</a></li>
+        </ul>
 	</div>
 
 </div>

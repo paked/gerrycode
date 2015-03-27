@@ -5,7 +5,7 @@ app.config(['$routeProvider',
 		$routeProvider.
 			when('/', {
 				templateUrl: '/partials/home.html',
-				controller: 'MainCtrl'
+				controller: 'HomeCtrl'
 			}).
 			when('/me/view', {
 				templateUrl: 'partials/my_projects.html',
@@ -132,15 +132,26 @@ app.directive('rrUsername', function($http) {
     };
 });
 
-app.controller('MainCtrl', function($scope, User) {
+app.controller('HomeCtrl', function($scope, $http, User) {
 	$scope.$on('user.update', function(event) {
 		$scope.message = User.username;
 	});
+
 	$scope.message = User.username;
 
 	$scope.change = function() {
 		User.changeUsername("boo I liked that username!");
 	};
+
+    $http.get("/api/top/projects").
+        success(function(data) {
+            if (data.status.error) {
+                console.log("unable to get the top projects");
+                return;
+            }
+
+            $scope.projects = data.data;
+        });
 });
 
 app.controller('AuthCtrl', function($scope, $routeParams, $http, $location, User) {
