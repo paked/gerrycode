@@ -346,19 +346,6 @@ app.controller('ViewFlagCtrl', function($scope, $http, $routeParams, User) {
 			$scope.flag = data.data;
 		});
 
-	$scope.getUsername = function(id) {
-		$scope[name] = "looking up...";
-/*		$http.get('/api/user/' + id).
-			success(function(data) {
-				$scope[name] = data.data.username;	
-			});*/
-		console.log(name);
-	};
-
-	$scope.createName = function(id) {	
-		return "id_" + id;
-	};
-
     $scope.feedback = function() {
         console.log("pushing feedbakc");
         var text = $scope.text;
@@ -373,7 +360,9 @@ app.controller('ViewFlagCtrl', function($scope, $http, $routeParams, User) {
                     console.log(data);
                     return;
                 }
+
                 $scope.feedbacks.push(data.data);
+                $scope.text = "";
             });
     };
 
