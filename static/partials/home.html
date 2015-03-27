@@ -11,7 +11,7 @@
 
 	<div class="one-half column">
 		<ul class="projects">
-            <li ng-repeat="project in projects"><a ng-href="#/projects/{{project.id}}">{{project.name}}</a></li>
+            <li ng-repeat="project in projects"><a ng-href="#/projects/{{project.id}}">{{project.name}}</a> by <rr-username uid="project.owner"></rr-username></li>
         </ul>
 	</div>
 
