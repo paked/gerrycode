@@ -189,20 +189,25 @@ app.controller('MakeCtrl', function($scope, $http, $location, User) {
 		name = $scope.name;
 		url = $scope.url;
 		tldr = $scope.tldr;
+        lang = $scope.language;
 
-		if(!name) {
+		if (!name) {
 			return;
 		}
 
-		if(!url) {
+		if (!url) {
 			return;
 		}
 
-		if(!tldr) {
+		if (!tldr) {
 			return;
 		}
 
-		$http.post("/api/project/new?access_token=" + User.token + "&name=" + name + "&url=" + url + "&tldr=" + tldr).
+        if (!lang) {
+            return;
+        }
+
+		$http.post("/api/project/new?access_token=" + User.token + "&name=" + name + "&url=" + url + "&tldr=" + tldr + "&lang=" + lang).
 			success(function(data) {
 				if (data.status.error) {
 					console.log(data);
