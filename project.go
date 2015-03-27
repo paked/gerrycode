@@ -13,11 +13,12 @@ import (
 
 // Project represents a project which a User has submitted
 type Project struct {
-	ID    bson.ObjectId `bson:"_id" json:"id"`
-	Owner bson.ObjectId `bson:"owner" json:"owner"`
-	Name  string        `bson:"name" json:"name"`
-	URL   string        `bson:"url" json:"url"`
-	TLDR  string        `bson:"tldr" json:"tldr"`
+	ID       bson.ObjectId `bson:"_id" json:"id"`
+	Owner    bson.ObjectId `bson:"owner" json:"owner"`
+	Name     string        `bson:"name" json:"name"`
+	URL      string        `bson:"url" json:"url"`
+	TLDR     string        `bson:"tldr" json:"tldr"`
+	Language Language      `bson:"language" json:"language"`
 }
 
 // BID is a helper function to fulfill the models.Modeller interface
@@ -90,7 +91,13 @@ func PostCreateProjectHandler(w http.ResponseWriter, r *http.Request, t *jwt.Tok
 		return
 	}
 
-	p = Project{ID: bson.NewObjectId(), Owner: bson.ObjectIdHex(id), Name: name, URL: url, TLDR: tldr}
+	lang, err := GetOrCreateLanguage(r.FormValue("lang"))
+	fmt.Println(lang, r.FormValue("lang"))
+	if err != nil {
+		c.Error("Unable to create that language...")
+	}
+
+	p = Project{ID: bson.NewObjectId(), Owner: bson.ObjectIdHex(id), Name: name, URL: url, TLDR: tldr, Language: lang}
 	if err := models.Persist(p); err != nil {
 		c.Error("Error persisting that new project!")
 		return
