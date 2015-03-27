@@ -117,11 +117,14 @@ app.service('User', function($rootScope, $http, $location) {
 app.directive('rrUsername', function($http) {
     return {
         restrict: 'E',
+        scope: {
+            uid: "="
+        },
         link: function(scope) {
-            $http.get("/api/user/" + scope.feedback.user).
+            $http.get("/api/user/" + scope.uid).
                 success(function(data) {
                     if (data.status.error) {
-                        console.log("Could not get that user.." + scope.feedback.user);
+                        console.log("Could not get that user.." + scope.feedback.uid);
                         return;
                     }
                     
