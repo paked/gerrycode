@@ -53,19 +53,30 @@ func LoginUser(username string, password string) (User, error) {
 	return u, nil
 }
 
+func ValidateCredentials(username, password string) bool {
+	if !credentialsRegex.MatchString(username) {
+		return false
+	}
+
+	if password == "" {
+		return false
+	}
+
+	return true
+}
+
 // NewUserHandler creates a new user.
 // 		POST /api/user/register?username=paked&pasword=pw
 func NewUserHandler(w http.ResponseWriter, r *http.Request) {
 	c := NewCommunicator(w)
-	username := credentialsRegex.FindString(r.FormValue("username"))
-	email := emailRegex.FindString(r.FormValue("email"))
-	password := credentialsRegex.FindString(r.FormValue("password"))
 
-	if username == "" || email == "" || password == "" {
+	username := r.FormValue("username")
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+
+	if !ValidateCredentials(username, password) || !emailRegex.MatchString(email) {
 		c.Fail("That is not a valid username password, or email")
-		return
 	}
-
 	var u User
 	if err := models.Restore(&u, bson.M{"username": username}); err == nil {
 		c.Fail("That user already exists!")
