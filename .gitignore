@@ -23,7 +23,7 @@ _testmain.go
 *.test
 *.prof
 
-go-repo-review
+gerrycode
 
 *.rsa*
 

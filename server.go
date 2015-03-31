@@ -13,10 +13,10 @@ var (
 	signingMethod      jwt.SigningMethod
 )
 
-// Server represents an instance of the go-github-review application.
+// Server represents an instance of the gerrycode application.
 type Server struct{}
 
-// NewServer initializes a go-github-review server and then returns a pointer to it
+// NewServer initializes a gerrycode server and then returns a pointer to it
 func NewServer() *Server {
 	s := &Server{}
 
@@ -25,7 +25,7 @@ func NewServer() *Server {
 	return s
 }
 
-// InitRouting creates all the necessary routes for go-github-review.
+// InitRouting creates all the necessary routes for gerrycode
 func (s *Server) InitRouting() {
 	r := mux.NewRouter()
 	api := r.PathPrefix("/api").Subrouter()

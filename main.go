@@ -1,4 +1,4 @@
-// repo-review is an open source project for rating and comparing hosted git repositories.
+// gerrycode an open source project for rating and comparing hosted git repositories.
 // Written by Harrison Shoebridge (http://github.com/paked) available under the MIT license.
 //
 // Please contribute :) It makes me happy!
@@ -9,7 +9,6 @@ import (
 	"fmt"
 
 	"code.google.com/p/goauth2/oauth"
-
 	"github.com/gorilla/sessions"
 	"github.com/paked/models"
 )

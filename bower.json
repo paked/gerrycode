@@ -1,7 +1,7 @@
 {
-  "name": "go-repo-review",
+  "name": "gerrycode",
   "version": "0.0.1",
-  "homepage": "https://github.com/paked/go-repo-review",
+  "homepage": "https://github.com/paked/gerrycode",
   "authors": [
     "Harrison <harrison@theshoebridges.com>"
   ],

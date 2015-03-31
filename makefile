@@ -13,9 +13,9 @@ test:
 	- go test -v
 
 build:
-	- rm go-repo-review
+	- rm gerrycode
 	- go build
 
 run:
 	- make build
-	- ./go-repo-review
+	- ./gerrycode
