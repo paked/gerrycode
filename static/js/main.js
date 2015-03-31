@@ -1,4 +1,4 @@
-app = angular.module('revco', ["ngRoute"]);
+app = angular.module('gerrycode', ["ngRoute"]);
 
 app.config(['$routeProvider',
 	function($routeProvider) {
