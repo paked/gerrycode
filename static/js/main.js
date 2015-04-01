@@ -59,8 +59,13 @@ app.service('User', function($rootScope, $http, $location) {
 		},
 		changeToken: function(token) {
 			service.token = token;
+            localStorage.token = token;
 			$rootScope.$broadcast('user.update');
 		},
+        logout: function() {
+            service.changeToken(undefined);
+            $location.path("/login");
+        },
 		loggedIn: function() {
 			console.log(service.token);
 			return service.token !== undefined && service.token != "undefined";
@@ -84,7 +89,6 @@ app.service('User', function($rootScope, $http, $location) {
 						return;
 					}
 
-					localStorage.token = data.data;
 					service.changeToken(data.data);
 					$location.path("/");
 					

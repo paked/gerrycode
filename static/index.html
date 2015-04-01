@@ -41,6 +41,7 @@
 				<ul ng-if="user.loggedIn()">
 					<li><a href="#/me/view">My Projects</a></li>
 					<li>{{user.username}}</li>
+                    <li ng-click="user.logout()">Logout</li>
 				</ul>
 				<ul ng-if="!user.loggedIn()">
 					<li><a href="#/login">Login</a></li>
