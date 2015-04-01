@@ -22,6 +22,7 @@ var (
 	privateKeyPath = flag.String("private", "keys/app.rsa", "path to the private key")
 	publicKeyPath  = flag.String("public", "keys/app.rsa.pub", "path to the public key")
 	db             = flag.String("db", "repo-reviews", "name of the database")
+	dbHost         = flag.String("dbhost", "localhost", "the host of the mongodb db")
 	confFile       = flag.String("config", "config.json", "pass to file matching schema in example_config.json")
 
 	host = flag.String("host", "localhost", "host to start the server on")
@@ -44,7 +45,7 @@ func init() {
 }
 
 func main() {
-	models.Init("localhost", *db)
+	models.Init(*dbHost, *db)
 	server = NewServer()
 
 	fmt.Println(server.Run(*host, *port))

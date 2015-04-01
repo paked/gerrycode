@@ -70,7 +70,7 @@ func (s *Server) InitRouting() {
 // Run runs the http server.
 func (s Server) Run(host, port string) error {
 	address := fmt.Sprint(host, ":", port)
-	fmt.Println("Starting server on ", address)
+	fmt.Println("Starting server on", address)
 	return http.ListenAndServe(address, nil)
 }
 
