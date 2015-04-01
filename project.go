@@ -19,6 +19,7 @@ type Project struct {
 	URL      string        `bson:"url" json:"url"`
 	TLDR     string        `bson:"tldr" json:"tldr"`
 	Language Language      `bson:"language" json:"language"`
+	Time     time.Time     `bson:"time" json:"time"`
 }
 
 // BID is a helper function to fulfill the models.Modeller interface
@@ -97,7 +98,7 @@ func PostCreateProjectHandler(w http.ResponseWriter, r *http.Request, t *jwt.Tok
 		c.Error("Unable to create that language...")
 	}
 
-	p = Project{ID: bson.NewObjectId(), Owner: bson.ObjectIdHex(id), Name: name, URL: url, TLDR: tldr, Language: lang}
+	p = Project{ID: bson.NewObjectId(), Owner: bson.ObjectIdHex(id), Name: name, URL: url, TLDR: tldr, Language: lang, Time: time.Now()}
 	if err := models.Persist(p); err != nil {
 		c.Error("Error persisting that new project!")
 		return
@@ -163,7 +164,7 @@ func GetUsersProjectsHandler(w http.ResponseWriter, r *http.Request, t *jwt.Toke
 
 	var projects []Project
 	project := Project{}
-	iter, err := models.Fetch(project.C(), bson.M{"owner": bson.ObjectIdHex(id)})
+	iter, err := models.Fetch(project.C(), bson.M{"owner": bson.ObjectIdHex(id)}, "id")
 	if err != nil {
 		c.Fail("Those projects don't exist!")
 		return
@@ -188,7 +189,7 @@ func GetProjectsFlagsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var flags []Flag
 	flag := Flag{}
-	iter, err := models.Fetch(flag.C(), bson.M{"project": bson.ObjectIdHex(id)})
+	iter, err := models.Fetch(flag.C(), bson.M{"project": bson.ObjectIdHex(id)}, "id")
 	if err != nil {
 		c.Fail("Those flags don't exist!")
 		return
@@ -278,7 +279,7 @@ func GetAllFeedbackForFlagHandler(w http.ResponseWriter, r *http.Request) {
 
 	var feedbacks []Feedback
 	feedback := Feedback{}
-	iter, err := models.Fetch(feedback.C(), bson.M{"flag": flag, "project": project})
+	iter, err := models.Fetch(feedback.C(), bson.M{"flag": flag, "project": project}, "id")
 	if err != nil {
 		c.Fail("Unable to get all that feedback!")
 		return

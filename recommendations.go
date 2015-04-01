@@ -12,7 +12,7 @@ func GetTopProjects(w http.ResponseWriter, r *http.Request) {
 
 	var projects []Project
 	project := Project{}
-	iter, err := models.Fetch(project.C(), bson.M{})
+	iter, err := models.Fetch(project.C(), bson.M{}, "-time")
 	if err != nil {
 		c.Fail("Unable to fetch projects...")
 	}
