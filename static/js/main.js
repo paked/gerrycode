@@ -136,16 +136,6 @@ app.directive('rrUsername', function($http) {
 });
 
 app.controller('HomeCtrl', function($scope, $http, User) {
-	$scope.$on('user.update', function(event) {
-		$scope.message = User.username;
-	});
-
-	$scope.message = User.username;
-
-	$scope.change = function() {
-		User.changeUsername("boo I liked that username!");
-	};
-
     $http.get("/api/top/projects").
         success(function(data) {
             if (data.status.error) {
