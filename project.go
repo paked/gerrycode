@@ -106,7 +106,7 @@ func PostCreateProjectHandler(w http.ResponseWriter, r *http.Request, t *jwt.Tok
 
 	c.OKWithData("Here is your user!", p)
 }
-func PostEditProjectsTLDR(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
+func PostEditProject(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
 	c := NewCommunicator(w)
 	var p Project
 	vars := mux.Vars(r)
@@ -118,15 +118,34 @@ func PostEditProjectsTLDR(w http.ResponseWriter, r *http.Request, t *jwt.Token) 
 	}
 
 	tldr := r.FormValue("tldr")
+	name := r.FormValue("name")
+	url := r.FormValue("url")
 
 	if err := models.RestoreByID(&p, bson.ObjectIdHex(id)); err != nil {
 		c.Fail("Could not find that project!")
 		return
 	}
 
-	p.TLDR = tldr
+	update := bson.M{}
 
-	if err := models.Update(&p, bson.M{"tldr": tldr}); err != nil {
+	if tldr != "" {
+		update["tldr"] = tldr
+	}
+
+	if name != "" {
+		update["name"] = name
+	}
+
+	if url != "" {
+		update["url"] = url
+	}
+
+	if len(update) == 0 {
+		c.Fail("You didnt specify any new values!")
+		return
+	}
+
+	if err := models.Update(&p, update); err != nil {
 		c.Error("Error persisiting that new tldr!")
 		return
 	}
