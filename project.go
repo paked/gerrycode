@@ -106,6 +106,33 @@ func PostCreateProjectHandler(w http.ResponseWriter, r *http.Request, t *jwt.Tok
 
 	c.OKWithData("Here is your user!", p)
 }
+func PostEditProjectsTLDR(w http.ResponseWriter, r *http.Request, t *jwt.Token) {
+	c := NewCommunicator(w)
+	var p Project
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	if !bson.IsObjectIdHex(id) {
+		c.Fail("That is not a recognized bson.ObjectID")
+		return
+	}
+
+	tldr := r.FormValue("tldr")
+
+	if err := models.RestoreByID(&p, bson.ObjectIdHex(id)); err != nil {
+		c.Fail("Could not find that project!")
+		return
+	}
+
+	p.TLDR = tldr
+
+	if err := models.Update(&p, bson.M{"tldr": tldr}); err != nil {
+		c.Error("Error persisiting that new tldr!")
+		return
+	}
+
+	c.OKWithData("Updated project!", p)
+}
 
 // GetRepository retrieves a Repository.
 // 		GET /api/project/{id}
