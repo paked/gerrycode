@@ -40,8 +40,6 @@ func (s *Server) InitRouting() {
 
 	api.HandleFunc("/user/{username}", s.headers(GetUserHandler)).Methods("GET")
 
-	api.HandleFunc("/user/git/repositories", s.headers(s.restrict(GetUsersRepositories))).Methods("GET")
-
 	api.HandleFunc("/project/new", s.headers(s.restrict(PostCreateProjectHandler))).Methods("POST")
 
 	api.HandleFunc("/project/{id}", s.headers(GetProjectHandler)).Methods("GET")
@@ -59,10 +57,6 @@ func (s *Server) InitRouting() {
 	api.HandleFunc("/project/{id}/flags/{flag}/feedback", s.headers(GetAllFeedbackForFlagHandler)).Methods("GET")
 
 	api.HandleFunc("/top/projects", s.headers(GetTopProjects)).Methods("GET")
-
-	api.HandleFunc("/reg", s.restrict(PostLinkUserAccount)).Methods("GET")
-
-	api.HandleFunc("/oauth", GetAuthedGithubAccount).Methods("GET")
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("static/")))
 

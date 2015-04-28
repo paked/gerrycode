@@ -8,16 +8,14 @@ import (
 	"flag"
 	"fmt"
 
-	"code.google.com/p/goauth2/oauth"
 	"github.com/gorilla/sessions"
 	"github.com/paked/models"
 )
 
 var (
-	server      *Server
-	conf        Config
-	oauthConfig *oauth.Config
-	store       = sessions.NewCookieStore([]byte(conf.SessionSecret))
+	server *Server
+	conf   Config
+	store  = sessions.NewCookieStore([]byte(conf.SessionSecret))
 
 	privateKeyPath = flag.String("private", "keys/app.rsa", "path to the private key")
 	publicKeyPath  = flag.String("public", "keys/app.rsa.pub", "path to the public key")
@@ -39,7 +37,6 @@ func init() {
 	}
 	fmt.Println(conf)
 
-	fillOAuthConfig()
 	generateKeys()
 	createUserRegex()
 }
